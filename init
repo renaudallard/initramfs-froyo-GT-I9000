@@ -1,0 +1,137 @@
+#!/sbin/sh
+
+# Copyright 2010 Renaud Allard. All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without modification, are
+# permitted provided that the following conditions are met:
+#
+#    1. Redistributions of source code must retain the above copyright notice, this list of
+#       conditions and the following disclaimer.
+#
+#    2. Redistributions in binary form must reproduce the above copyright notice, this list
+#       of conditions and the following disclaimer in the documentation and/or other materials
+#       provided with the distribution.
+# 
+# THIS SOFTWARE IS PROVIDED BY Renaud Allard ``AS IS'' AND ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+# FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL Renaud Allard OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+# ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# The views and conclusions contained in the software and documentation are those of the
+# authors and should not be interpreted as representing official policies, either expressed
+# or implied, of Renaud Allard.
+
+VERSION=0.1
+
+PATH=/bin:/sbin:/usr/bin/:/usr/sbin:/system/bin:/system/xbin
+
+# standard
+mkdir /dev
+mknod /dev/null c 1 3
+mknod /dev/zero c 1 5
+mknod /dev/urandom c 1 9
+
+# internal & external SD
+mkdir /dev/block
+mknod /dev/block/mmcblk0 b 179 0
+mknod /dev/block/mmcblk0p1 b 179 1
+mknod /dev/block/mmcblk0p2 b 179 2
+mknod /dev/block/mmcblk0p3 b 179 3
+mknod /dev/block/mmcblk0p4 b 179 4
+mknod /dev/block/mmcblk1 b 179 8
+mknod /dev/block/stl1 b 138 1
+mknod /dev/block/stl2 b 138 2
+mknod /dev/block/stl3 b 138 3
+mknod /dev/block/stl4 b 138 4
+mknod /dev/block/stl5 b 138 5
+mknod /dev/block/stl6 b 138 6
+mknod /dev/block/stl7 b 138 7
+mknod /dev/block/stl8 b 138 8
+mknod /dev/block/stl9 b 138 9
+mknod /dev/block/stl10 b 138 10
+mknod /dev/block/stl11 b 138 11
+mknod /dev/block/stl12 b 138 12
+
+mount -t proc proc /proc
+mount -t sysfs sys /sys
+
+insmod /lib/modules/fsr.ko
+insmod /lib/modules/fsr_stl.ko
+insmod /lib/modules/rfs_glue.ko
+insmod /lib/modules/rfs_fat.ko
+
+# Kill that stupid autoformatter
+mount -t rfs -o nosuid,nodev,check=no /dev/block/stl9 /system
+rm /system/bin/fat.format
+ln -s /sbin/fat.format /system/bin/fat.format
+
+# Mount data since it will be used for tests afterwards anyway
+mount -t rfs -o nosuid,nodev,check=no /dev/block/mmcblk0p2 /data
+
+#install superuser 
+if [ ! -f /system/Renaud_Allard.$VERSION ]
+then
+
+# erase all old flags
+    rm /system/Renaud_Allard*
+
+# ensure /system/xbin exists
+    mkdir /system/xbin
+    chmod 755 /system/xbin
+
+# su
+    rm /system/bin/su
+    rm /system/xbin/su
+    cp /res/misc/su /system/xbin/
+    chown 0.0 /system/xbin/su
+    chmod 4755 /system/xbin/su
+
+# Superuser
+    rm /system/app/Superuser.apk
+    rm /data/app/Superuser.apk
+    cp /res/misc/Superuser.apk /system/app/
+    chown 0.0 /system/app/Superuser.apk
+    chmod 644 /system/app/Superuser.apk
+
+# Change GPS settings
+    sed -i 's/north-america/europe/' /system/etc/gps.conf
+
+# Remove noisy startup/shutdown sounds
+    mv /system/etc/PowerOn.wav /system/etc/PowerOn.wav.disabled
+    mv /system/media/audio/ui/shutdown.ogg /system/media/audio/ui/shutdown.ogg.disabled
+
+# install backlight lib
+    cp /res/misc/liblight_binary/lights.s5pc110.so /system/lib/hw/
+
+# Once be enough
+    echo 1 > /system/Renaud_Allard.$VERSION
+
+fi;
+
+# Has EFS been erased? If yes, recreate it.
+# That's a basic check, I don't really check contents but that more when someone rm -rf /data/*
+if [ ! -d /data/efs ]
+then
+# Copy /efs
+    mkdir /jfsmod_efs
+    mount -t rfs -o ro,nosuid,nodev,check=no /dev/block/stl3 /jfsmod_efs
+    mkdir /data/efs
+    cp -rp /jfsmod_efs/* /data/efs/
+    cp -rp /jfsmod_efs/.* /data/efs/
+    chown -R 1001:1001 /data/efs
+    chmod 0771 /data/efs
+    umount /jfsmod_efs
+    rmdir /jfsmod_efs
+fi
+
+umount /data
+umount /system
+umount /dev/block/mmcblk0p1
+
+exec /init_samsung
+
