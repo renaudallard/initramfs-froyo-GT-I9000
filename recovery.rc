@@ -26,7 +26,7 @@ loglevel 3
     # ko files for vibrator
     insmod /lib/modules/vibrator.ko
 
-#add booting sound property 
+#add booting sound property
 #	setprop audioflinger.bootsnd 1
 
 # Backward compatibility
@@ -41,7 +41,7 @@ loglevel 3
     mkdir /acct
     mount cgroup none /acct cpuacct
     mkdir /acct/uid
-    
+
     mkdir /tmp
     mount tmpfs nodev /tmp
     insmod /lib/modules/fsr.ko
@@ -112,7 +112,8 @@ loglevel 3
 # mount mtd partitions
     # Mount /system rw first to give the filesystem a chance to save a checkpoint
     #mount yaffs2 mtd@system /system
-    mount rfs /dev/block/stl9 /system check=no
+#    mount rfs /dev/block/stl9 /system check=no
+    mount jfs /dev/block/stl9 /system noatime nodiratime nosuid nodev rw iocharset=utf8
     #mount yaffs2 mtd@system /system ro remount
 
 # use movinand second partition as /data. d.moskvitin
@@ -126,7 +127,7 @@ loglevel 3
     #chown system system /data
     #chmod 0771 /data
 
-    ###################################################################    
+    ###################################################################
     # create dbdata partition
     #mkdir /dbdata
     #mount rfs /dev/block/stl10 /dbdata nosuid nodev check=no
@@ -134,13 +135,13 @@ loglevel 3
     #chown system system /dbdata
     #chown system system /dbdata/databases
     #chmod 0771 /dbdata
-    #chmod 0777 /dbdata/databases   
-    ###################################################################  
+    #chmod 0777 /dbdata/databases
+    ###################################################################
 
     # Create dump dir and collect dumps.
     # Do this before we mount cache so eventually we can use cache for
     # storing dumps on platforms which do not have a dedicated dump partition.
-   
+
     mkdir /data/dontpanic
     chown root log /data/dontpanic
     chmod 0750 /data/dontpanic
@@ -159,6 +160,7 @@ loglevel 3
     # Same reason as /data above
     #mount yaffs2 mtd@cache /cache nosuid nodev
     #mount rfs /dev/block/stl11 /cache nosuid nodev check=no
+    mount jfs /dev/block/stl11 /cache noatime nodiratime nosuid nodev rw iocharset=utf8
     #chown system cache /cache
     #chmod 0770 /cache
 
@@ -178,8 +180,8 @@ loglevel 3
 
     chmod 0666 /dev/log/radio
     chmod 0666 /dev/log/main
-    chmod 0666 /dev/log/event    
-    	
+    chmod 0666 /dev/log/event
+
 on boot
 # basic network init
     ifup lo
@@ -210,7 +212,7 @@ on boot
     setprop ro.HIDDEN_APP_MEM 5120
     setprop ro.CONTENT_PROVIDER_MEM 5632
     setprop ro.EMPTY_APP_MEM 6144
-	
+
 	setprop wifi.interface "eth0"
 	setprop ro.bt.bdaddr_path "/data/misc/bluetooth/bt_addr"
 
@@ -315,7 +317,7 @@ on boot
     chmod 0777 /sys/class/rfkill/rfkill0/state
     chmod 0777 /sys/class/rfkill/rfkill1/state
     chown bluetooth bluetooth /sys/class/rfkill/rfkill0/state
-    chown bluetooth bluetooth /sys/class/rfkill/rfkill1/state 
+    chown bluetooth bluetooth /sys/class/rfkill/rfkill1/state
 
     chown root root /system/bin/brcm_dutMode
     chmod 6777 /system/bin/brcm_dutMode
@@ -325,15 +327,16 @@ on boot
 
 ## Daemon processes to be run by init.
 ##
-service console /system/bin/sh
+service console /sbin/sh
     console
 
-service recovery /sbin/recovery
+service recovery /sbin/recovery.sh
     console
     oneshot
 
 # adbd is controlled by the persist.service.adb.enable system property
-service adbd /sbin/adbd recovery
+#service adbd /sbin/adbd recovery
+service adbd /sbin/adbd
     enabled
 
 on property:persist.service.adb.enable=1
@@ -341,3 +344,9 @@ on property:persist.service.adb.enable=1
 
 on property:persist.service.adb.enable=0
     stop adbd
+
+## Chainfire - make sure adbd is enabled
+setprop persist.service.adb.enable 1
+stop adbd
+start adbd
+## /Chainfire

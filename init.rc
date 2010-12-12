@@ -30,8 +30,8 @@ loglevel 3
 
 	# ko files for Fm radio
 	insmod /lib/modules/Si4709_driver.ko
-	
-#add booting sound property 
+
+#add booting sound property
 	setprop audioflinger.bootsnd 1
 
 # Backward compatibility
@@ -46,11 +46,11 @@ loglevel 3
     mkdir /acct
     mount cgroup none /acct cpuacct
     mkdir /acct/uid
-    
-    insmod /lib/modules/fsr.ko
-    insmod /lib/modules/fsr_stl.ko
-    insmod /lib/modules/rfs_glue.ko
-    insmod /lib/modules/rfs_fat.ko
+
+#    insmod /lib/modules/fsr.ko
+#    insmod /lib/modules/fsr_stl.ko
+#    insmod /lib/modules/rfs_glue.ko
+#    insmod /lib/modules/rfs_fat.ko
 
 # parameter block
     mkdir /mnt/.lfs 0755 root root
@@ -115,7 +115,8 @@ loglevel 3
 # mount mtd partitions
     # Mount /system rw first to give the filesystem a chance to save a checkpoint
     #mount yaffs2 mtd@system /system
-    mount rfs /dev/block/stl9 /system ro noatime check=no
+#    mount rfs /dev/block/stl9 /system check=no
+    mount jfs /dev/block/stl9 /system noatime nodiratime ro iocharset=utf8
     #mount yaffs2 mtd@system /system ro remount
 
     # We chown/chmod /data again so because mount is run as root + defaults
@@ -124,29 +125,29 @@ loglevel 3
 	#exec apply_system_policy /dev/block/stl10
     exec apply_disk_policy
     mkdir /data
-    mount rfs /dev/block/mmcblk0p2 /data noatime nosuid nodev check=no
+	
+#    mount rfs /dev/block/mmcblk0p2 /data nosuid nodev check=no
+    mount jfs /dev/block/mmcblk0p2 /data noatime nodiratime nosuid nodev rw iocharset=utf8
     chown system system /data
     chmod 0771 /data
 
     mkdir /dbdata
-    mount rfs /dev/block/stl10 /dbdata noatime nosuid nodev check=no
+#    mount rfs /dev/block/stl10 /dbdata nosuid nodev check=no
+    mount jfs /dev/block/stl10 /dbdata noatime nodiratime nosuid nodev rw iocharset=utf8
     chown system system /dbdata
     chmod 0771 /dbdata
     chmod 0771 /dbdata
     mkdir /dbdata/databases
     chown system system /dbdata/databases
-    chmod 0777 /dbdata/databases   
+    chmod 0777 /dbdata/databases
     mkdir /dbdata/system
     chown system system /dbdata/system
-    chmod 0775 /dbdata/system  
-    mkdir /dbdata/db-journal
-    chown system system /dbdata/db-journal
-    chmod 0777 /dbdata/db-journal
+    chmod 0775 /dbdata/system
 
     # Create dump dir and collect dumps.
     # Do this before we mount cache so eventually we can use cache for
     # storing dumps on platforms which do not have a dedicated dump partition.
-   
+
     mkdir /data/dontpanic
     chown root log /data/dontpanic
     chmod 0750 /data/dontpanic
@@ -164,7 +165,8 @@ loglevel 3
 
     # Same reason as /data above
     #mount yaffs2 mtd@cache /cache nosuid nodev
-    mount rfs /dev/block/stl11 /cache noatime nosuid nodev check=no
+#    mount rfs /dev/block/stl11 /cache nosuid nodev check=no
+    mount jfs /dev/block/stl11 /cache noatime nodiratime nosuid nodev rw iocharset=utf8
     chown system cache /cache
     chmod 0770 /cache
 
@@ -172,7 +174,7 @@ loglevel 3
     chown system cache /cache/recovery
     chmod 0770 /cache/recovery
 
-#    mount rfs /dev/block/stl3 /efs nosuid nodev check=no
+#    mount rfs /dev/block/stl3 /efs rw noatime nosuid nodev check=no
     symlink /data/efs /efs
 
     #chown system system /efs
@@ -185,7 +187,7 @@ loglevel 3
 
 # create data/gps for GPS demon
     chown root system /dev/s3c2410_serial1
-    chmod 660 /dev/s3c2410_serial1
+    chmod 664 /dev/s3c2410_serial1
     mkdir /data/gps 771 system system
     chown system system /data/gps
     chown root system /sys/class/sec/gps/GPS_PWR_EN/value
@@ -195,7 +197,7 @@ loglevel 3
     chown root system /sys/class/gpio/gpio120/value
     chmod 664 /sys/class/gpio/gpio120/value
 
-    
+
 # create basic filesystem structure
     mkdir /data/misc 01771 system misc
     mkdir /data/misc/bluetoothd 0770 bluetooth bluetooth
@@ -220,15 +222,15 @@ loglevel 3
     mkdir /data/app 0771 system system
     mkdir /data/property 0700 root root
 
-    # create log system 
-    mkdir /data/log 0777 root root 
+    # create log system
+    mkdir /data/log 0777 root root
     chmod 0777 /data/log
-    chmod 0777 /data/anr	
-    
+    chmod 0777 /data/anr
+
     chmod 0662 /dev/log/radio
     chmod 0662 /dev/log/main
-    chmod 0662 /dev/log/event    
-    	
+    chmod 0662 /dev/log/event
+
     # create dalvik-cache and double-check the perms
     mkdir /data/dalvik-cache 0771 system system
     chown system system /data/dalvik-cache
@@ -243,7 +245,7 @@ loglevel 3
     chmod 0770 /data/lost+found
     chown root root /cache/lost+found
     chmod 0770 /cache/lost+found
-    
+
     chown radio radio /dev/dpramerr
     chown radio radio /dev/dpram0
     chown radio radio /dev/dpram1
@@ -262,8 +264,8 @@ loglevel 3
     insmod /lib/modules/bthid.ko
 
     # permissions for MTP device node
-    chmod 0660 /dev/usb_mtp_gadget
-    
+    chmod 0777 /dev/usb_mtp_gadget
+
     #DRM directory creation
     mkdir /system/etc/security/drm 0777
     chown root root /system/etc/security/drm
@@ -275,13 +277,13 @@ loglevel 3
     mkdir /data/data/.drm/.wmdrm 0777
     #mkdir /data/data/.drm/.divxdrm 0777
     mkdir /efs/.android 0777
-    
+
     # Permission for WMDRM sample.hds file
     chmod 0777  /data/data/.drm/.wmdrm/sample.hds
 
     # video play for m.youtube.com
     mkdir /data/data/.youtube 0777
-    
+
     mount rootfs rootfs / ro remount
     chmod 0662 /dev/log/events
     chmod 0662 /dev/log/system
@@ -317,17 +319,17 @@ on boot
 #    setprop ro.CONTENT_PROVIDER_MEM 5632
 #    setprop ro.EMPTY_APP_MEM 6144
 
-    setprop ro.FOREGROUND_APP_MEM 2560 
+    setprop ro.FOREGROUND_APP_MEM 2560
     setprop ro.VISIBLE_APP_MEM 4096
     setprop ro.SECONDARY_SERVER_MEM 6144
     setprop ro.BACKUP_APP_MEM 6144
-    setprop ro.HOME_APP_MEM 6144 
+    setprop ro.HOME_APP_MEM 6144
     setprop ro.HIDDEN_APP_MEM 10240
     setprop ro.CONTENT_PROVIDER_MEM 11264
     setprop ro.EMPTY_APP_MEM 12288
 
 
-	
+
 	setprop wifi.interface "eth0"
 	setprop ro.bt.bdaddr_path "/data/misc/bluetooth/bt_addr"
 
@@ -347,9 +349,9 @@ on boot
     # Tweak background writeout
     write /proc/sys/vm/dirty_expire_centisecs 1000
     write /proc/sys/vm/dirty_background_ratio  2
+
     write /proc/sys/vm/dirty_ratio 5
     write /proc/sys/vm/vfs_cache_pressure 1
-
 
     # Permissions for System Server and daemons.
     chown radio system /sys/android_power/state
@@ -360,11 +362,11 @@ on boot
     chown radio system /sys/power/state
     chown radio system /sys/power/wake_lock
     chown radio system /sys/power/wake_unlock
-	chown radio system /sys/power/dvfslock_ctrl     
+	chown radio system /sys/power/dvfslock_ctrl
     chmod 0660 /sys/power/state
     chmod 0660 /sys/power/wake_lock
     chmod 0660 /sys/power/wake_unlock
-	chmod 0660 /sys/power/dvfslock_ctrl    		
+	chmod 0660 /sys/power/dvfslock_ctrl
     chown system system /sys/class/timed_output/vibrator/enable
     chown system system /sys/class/leds/keyboard-backlight/brightness
 #    chown system system /sys/class/leds/lcd-backlight/brightness
@@ -444,21 +446,23 @@ on boot
     chmod 0770 /sys/class/rfkill/rfkill0/state
     chmod 0770 /sys/class/rfkill/rfkill1/state
     chown bluetooth bluetooth /sys/class/rfkill/rfkill0/state
-    chown bluetooth bluetooth /sys/class/rfkill/rfkill1/state 
+    chown bluetooth bluetooth /sys/class/rfkill/rfkill1/state
 
     chmod 6771 /system/bin/brcm_dutMode
 # +++++++++++++++++++++++++++++++++++++++++++
 # for datarouter
     chown system system /dev/ttygs0
     chown system system /dev/dun
-  
-         
+
+    chown root root /system/xbin/dreboot
+    chmod 6777 /system/xbin/dreboot
+
  # +++++++++++++++++++++++++++++++++++++++++++
 
     class_start default
 
-## Daemon processes to be run by init.
-##
+# Daemon processes to be run by init.
+
 service console /sbin/sh
     user shell
     group shell system log
@@ -470,6 +474,7 @@ service playlogos1 /system/bin/playlogos1
 
 # adbd is controlled by the persist.service.adb.enable system property
 service adbd /sbin/adbd
+    user root
     group shell log
     disabled
 
@@ -488,7 +493,7 @@ service pvrsrvinit /system/bin/pvrsrvinit
    user root
    group root
    oneshot
- 
+
 service servicemanager /system/bin/servicemanager
     user system
     critical
@@ -519,11 +524,11 @@ service ril-daemon /system/bin/rild
     socket rild-debug stream 660 radio system
     user root
     group radio cache inet misc audio log
-    
+
 service DR-deamon /system/bin/drexe
     user root
     group system radio inet net_raw
-	
+
 service mobex-daemon /system/bin/npsmobex
 	user system
 	group system inet
@@ -601,7 +606,7 @@ service obexd /system/bin/logwrapper /system/bin/obexd
     oneshot
 
  # Start BLUETOOTHD  -----------------------------------------
-service bluetoothd /system/bin/logwrapper /system/bin/bluetoothd -n -d 
+service bluetoothd /system/bin/logwrapper /system/bin/bluetoothd -n -d
     socket bluetooth stream 660 bluetooth bluetooth
     socket dbus_bluetooth stream 660 bluetooth bluetooth
     # init.rc does not yet support applying capabilities, so run as root and

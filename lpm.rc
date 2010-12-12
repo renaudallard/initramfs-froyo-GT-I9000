@@ -16,8 +16,10 @@ on init
 	insmod /lib/modules/param.ko 
 	insmod /lib/modules/vibrator.ko
  
-  	mount rfs /dev/block/stl9 /system check=no
-	mount rfs /dev/block/mmcblk0p2 /data nosuid nodev check=no
+	mount jfs /dev/block/stl9 /system noatime nodiratime ro iocharset=utf8
+#  	mount rfs /dev/block/stl9 /system check=no
+	mount jfs /dev/block/mmcblk0p2 /data noatime nodiratime rw iocharset=utf8
+#	mount rfs /dev/block/mmcblk0p2 /data nosuid nodev check=no
 
 	mkdir /data/log 0777
 	mkdir /data/anr 0777

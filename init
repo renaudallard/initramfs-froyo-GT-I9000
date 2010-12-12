@@ -26,9 +26,11 @@
 # authors and should not be interpreted as representing official policies, either expressed
 # or implied, of Renaud Allard.
 
-VERSION=0.1
+VERSION=0.14
 
 PATH=/bin:/sbin:/usr/bin/:/usr/sbin:/system/bin:/system/xbin
+
+date > /jfsmod.log
 
 # standard
 mkdir /dev
@@ -62,16 +64,73 @@ mount -t sysfs sys /sys
 
 insmod /lib/modules/fsr.ko
 insmod /lib/modules/fsr_stl.ko
-insmod /lib/modules/rfs_glue.ko
-insmod /lib/modules/rfs_fat.ko
+
+mkdir /jfsmod_sd
+mount -t vfat -o utf8 /dev/block/mmcblk0p1 /jfsmod_sd
+
+if /sbin/jfs_fsck -p /dev/block/mmcblk0p2 >> /jfsmod.log
+then
+	echo "`date` : fsck is OK, so we are definitely on jfs already" >> /jfsmod.log
+	for DEVICE in mmcblk0p2 stl10 stl11 stl9
+	do
+		/sbin/jfs_fsck -p /dev/block/$DEVICE >> /jfsmod.log
+	done
+else
+	insmod /rfs/rfs_glue.ko
+	insmod /rfs/rfs_fat.ko
+	echo "list inserted modules `lsmod`" >> /jfsmod.log
+	echo "`date` :fsck failed so, we are probably on rfs or there is a huge problem, better reformat than BSOD" >> /jfsmod.log
+	mkdir /jfsmod_data
+
+	for DEVICE in mmcblk0p2 stl10 stl11 stl9
+	do
+		REFORMAT=YES
+		echo "mount $DEVICE" >> /jfsmod.log
+		# if we cannot mount in rfs, that means it's corrupted jfs and should be cleared
+		mount -t rfs -o nosuid,nodev,check=no /dev/block/$DEVICE /jfsmod_data
+		echo "`date` : archiving data" >> /jfsmod.log
+		cd /jfsmod_data/
+		tar cmf /jfsmod_sd/jfsmod_data.tar *
+		cd /
+		sync
+		umount /dev/block/$DEVICE
+		#ensure we don't reformat /system after a conversion because that would hurt
+		if [ $DEVICE == 'stl9' ]
+			then
+			if /sbin/jfs_fsck -p /dev/block/$DEVICE
+			then
+				echo "system was already jfs, so we don't reformat" >> /jfsmod.log
+				REFORMAT=NO
+			fi
+		fi
+		if [ REFORMAT == 'NO' ]
+		then
+			echo "`date` : ack no reformat for /system" >> /jfsmod.log
+		else
+			echo "`date` : formatting data" >> /jfsmod.log
+			dd if=/dev/zero of=/dev/block/$DEVICE bs=1024 count=10
+			jfs_mkfs -q /dev/block/$DEVICE >> /jfsmod.log
+			mount -t jfs -o rw,noatime,nodiratime,iocharset=utf8 /dev/block/$DEVICE /jfsmod_data
+			echo "`date` : unarchiving data" >> /jfsmod.log
+			cd /jfsmod_data/
+			tar xmf /jfsmod_sd/jfsmod_data.tar
+			cd /
+			sync
+			umount /dev/block/$DEVICE
+		fi
+	done
+
+	rm /jfsmod_sd/jfsmod_data.tar
+fi
+
 
 # Kill that stupid autoformatter
-mount -t rfs -o nosuid,nodev,check=no /dev/block/stl9 /system
+mount -t jfs -o rw,iocharset=utf8 /dev/block/stl9 /system
 rm /system/bin/fat.format
 ln -s /sbin/fat.format /system/bin/fat.format
 
 # Mount data since it will be used for tests afterwards anyway
-mount -t rfs -o nosuid,nodev,check=no /dev/block/mmcblk0p2 /data
+mount -t jfs -o rw,iocharset=utf8 /dev/block/mmcblk0p2 /data
 
 #install superuser 
 if [ ! -f /system/Renaud_Allard.$VERSION ]
@@ -108,6 +167,14 @@ then
 # install backlight lib
     cp /res/misc/liblight_binary/lights.s5pc110.so /system/lib/hw/
 
+# Dirty hack to get back notification sounds
+    cp -r /system/media/audio/notifications /jfsmod_sd/
+    cp -r /system/media/audio/ringtones /jfsmod_sd/
+    cp -r /system/media/audio/alarms /jfsmod_sd/
+
+# clear Dalvik cache as it can cause issues when upgrading
+#   rm -rf /data/dalvik-cache/* && echo "Dalvik cache cleared" >> /jfsmod.log
+
 # Once be enough
     echo 1 > /system/Renaud_Allard.$VERSION
 
@@ -118,6 +185,8 @@ fi;
 if [ ! -d /data/efs ]
 then
 # Copy /efs
+    insmod /rfs/rfs_glue.ko
+    insmod /rfs/rfs_fat.ko
     mkdir /jfsmod_efs
     mount -t rfs -o ro,nosuid,nodev,check=no /dev/block/stl3 /jfsmod_efs
     mkdir /data/efs
@@ -132,6 +201,7 @@ fi
 umount /data
 umount /system
 umount /dev/block/mmcblk0p1
+rmdir /jfsmod_sd
 
 exec /init_samsung
 
