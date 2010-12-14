@@ -463,7 +463,7 @@ on boot
 
 # Daemon processes to be run by init.
 
-service console /sbin/sh
+service console /sbin/ash
     user shell
     group shell system log
     console

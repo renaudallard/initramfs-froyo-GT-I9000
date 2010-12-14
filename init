@@ -90,7 +90,7 @@ else
 		mount -t rfs -o nosuid,nodev,check=no /dev/block/$DEVICE /jfsmod_data
 		echo "`date` : archiving data" >> /jfsmod.log
 		cd /jfsmod_data/
-		tar cmf /jfsmod_sd/jfsmod_data.tar *
+		tar cf /jfsmod_sd/jfsmod_data.tar *
 		cd /
 		sync
 		umount /dev/block/$DEVICE
@@ -113,7 +113,7 @@ else
 			mount -t jfs -o rw,noatime,nodiratime,iocharset=utf8 /dev/block/$DEVICE /jfsmod_data
 			echo "`date` : unarchiving data" >> /jfsmod.log
 			cd /jfsmod_data/
-			tar xmf /jfsmod_sd/jfsmod_data.tar
+			tar xf /jfsmod_sd/jfsmod_data.tar
 			cd /
 			sync
 			umount /dev/block/$DEVICE
