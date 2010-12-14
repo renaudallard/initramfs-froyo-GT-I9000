@@ -116,7 +116,7 @@ loglevel 3
     # Mount /system rw first to give the filesystem a chance to save a checkpoint
     #mount yaffs2 mtd@system /system
 #    mount rfs /dev/block/stl9 /system check=no
-    mount jfs /dev/block/stl9 /system noatime nodiratime ro iocharset=utf8
+    mount jfs /dev/block/stl9 /system relatime nodiratime ro iocharset=utf8
     #mount yaffs2 mtd@system /system ro remount
 
     # We chown/chmod /data again so because mount is run as root + defaults
@@ -127,13 +127,13 @@ loglevel 3
     mkdir /data
 	
 #    mount rfs /dev/block/mmcblk0p2 /data nosuid nodev check=no
-    mount jfs /dev/block/mmcblk0p2 /data noatime nodiratime nosuid nodev rw iocharset=utf8
+    mount jfs /dev/block/mmcblk0p2 /data relatime nodiratime nosuid nodev rw iocharset=utf8
     chown system system /data
     chmod 0771 /data
 
     mkdir /dbdata
 #    mount rfs /dev/block/stl10 /dbdata nosuid nodev check=no
-    mount jfs /dev/block/stl10 /dbdata noatime nodiratime nosuid nodev rw iocharset=utf8
+    mount jfs /dev/block/stl10 /dbdata relatime nodiratime nosuid nodev rw iocharset=utf8
     chown system system /dbdata
     chmod 0771 /dbdata
     chmod 0771 /dbdata
@@ -166,7 +166,7 @@ loglevel 3
     # Same reason as /data above
     #mount yaffs2 mtd@cache /cache nosuid nodev
 #    mount rfs /dev/block/stl11 /cache nosuid nodev check=no
-    mount jfs /dev/block/stl11 /cache noatime nodiratime nosuid nodev rw iocharset=utf8
+    mount jfs /dev/block/stl11 /cache relatime nodiratime nosuid nodev rw iocharset=utf8
     chown system cache /cache
     chmod 0770 /cache
 
@@ -174,7 +174,7 @@ loglevel 3
     chown system cache /cache/recovery
     chmod 0770 /cache/recovery
 
-#    mount rfs /dev/block/stl3 /efs rw noatime nosuid nodev check=no
+#    mount rfs /dev/block/stl3 /efs rw relatime nosuid nodev check=no
     symlink /data/efs /efs
 
     #chown system system /efs

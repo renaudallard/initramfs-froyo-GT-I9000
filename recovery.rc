@@ -345,8 +345,3 @@ on property:persist.service.adb.enable=1
 on property:persist.service.adb.enable=0
     stop adbd
 
-## Chainfire - make sure adbd is enabled
-setprop persist.service.adb.enable 1
-stop adbd
-start adbd
-## /Chainfire
