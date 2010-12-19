@@ -133,7 +133,7 @@ loglevel 3
 
     mkdir /dbdata
 #    mount rfs /dev/block/stl10 /dbdata nosuid nodev check=no
-    mount jfs /dev/block/stl10 /dbdata relatime nodiratime nosuid nodev rw iocharset=utf8
+    mount jfs /dev/block/stl10 /dbdata sync relatime nodiratime nosuid nodev rw iocharset=utf8
     chown system system /dbdata
     chmod 0771 /dbdata
     chmod 0771 /dbdata
@@ -166,7 +166,7 @@ loglevel 3
     # Same reason as /data above
     #mount yaffs2 mtd@cache /cache nosuid nodev
 #    mount rfs /dev/block/stl11 /cache nosuid nodev check=no
-    mount jfs /dev/block/stl11 /cache relatime nodiratime nosuid nodev rw iocharset=utf8
+    mount jfs /dev/block/stl11 /cache sync relatime nodiratime nosuid nodev rw iocharset=utf8
     chown system cache /cache
     chmod 0770 /cache
 
