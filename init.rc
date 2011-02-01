@@ -683,6 +683,3 @@ service dumpstate /system/bin/dumpstate -s
     disabled
     oneshot
 
-# Test command for stress test
-#service dfta /system/bin/sh /sbin/dfta.sh
-#  oneshot
