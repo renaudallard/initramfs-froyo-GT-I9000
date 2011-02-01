@@ -199,6 +199,21 @@ then
     rmdir /jfsmod_efs
 fi
 
+# Test if bootanimation is present and playable and if it is make the service
+if test -f /data/local/bootanimation.zip || test -f /system/media/bootanimation.zip && test -f /system/bin/bootanimation; then
+	echo 'service bootanim /system/bin/bootanimation
+		user graphics
+		group graphics
+		disabled
+		oneshot' >> init.rc
+	else
+	echo 'service playlogos1 /system/bin/playlogos1
+		user root
+		oneshot' >> init.rc
+fi
+
+# unmount all filesystems
+
 umount /data
 umount /system
 umount /dev/block/mmcblk0p1

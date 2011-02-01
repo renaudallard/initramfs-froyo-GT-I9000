@@ -468,10 +468,6 @@ service console /sbin/ash
     group shell system log
     console
 
-service playlogos1 /system/bin/playlogos1
-    user root
-    oneshot
-
 # adbd is controlled by the persist.service.adb.enable system property
 service adbd /sbin/adbd
     user root
