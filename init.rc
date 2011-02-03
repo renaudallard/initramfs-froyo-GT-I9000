@@ -95,6 +95,7 @@ loglevel 3
 
 # Change some network parameters
     write /proc/sys/net/ipv4/tcp_syncookies 1
+    write /proc/sys/net/ipv4/conf/all/accept_redirects 0
 
 # Create cgroup mount points for process groups
     mkdir /dev/cpuctl
