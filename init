@@ -212,8 +212,13 @@ if test -f /data/local/bootanimation.zip || test -f /system/media/bootanimation.
 		oneshot' >> init.rc
 fi
 
+# Mount dbdata to fix permissions
+#mount -t jfs -o rw,iocharset=utf8 /dev/block/stl10 /dbdata
+#/sbin/fix_permissions >> /jfsmod.log
+
 # unmount all filesystems
 
+#umount /dbdata
 umount /data
 umount /system
 umount /dev/block/mmcblk0p1
