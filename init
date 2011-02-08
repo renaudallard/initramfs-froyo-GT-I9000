@@ -71,7 +71,7 @@ mount -t vfat -o utf8 /dev/block/mmcblk0p1 /jfsmod_sd
 if /sbin/jfs_fsck -p /dev/block/mmcblk0p2 >> /jfsmod.log
 then
 	echo "`date` : fsck is OK, so we are definitely on jfs already" >> /jfsmod.log
-	for DEVICE in mmcblk0p2 stl10 stl11 stl9
+	for DEVICE in stl10 stl11 stl9
 	do
 		/sbin/jfs_fsck -p /dev/block/$DEVICE >> /jfsmod.log
 	done
@@ -213,12 +213,13 @@ if test -f /data/local/bootanimation.zip || test -f /system/media/bootanimation.
 fi
 
 # Mount dbdata to fix permissions
-#mount -t jfs -o rw,iocharset=utf8 /dev/block/stl10 /dbdata
-#/sbin/fix_permissions >> /jfsmod.log
+mkdir -p /dbdata
+mount -t jfs -o rw,iocharset=utf8 /dev/block/stl10 /dbdata
+/sbin/fix_permissions >> /jfsmod.log
 
 # unmount all filesystems
 
-#umount /dbdata
+umount /dbdata
 umount /data
 umount /system
 umount /dev/block/mmcblk0p1
