@@ -171,6 +171,10 @@ then
 # install backlight lib
     cp /res/misc/liblight_binary/lights.s5pc110.so /system/lib/hw/
 
+# Install Tomoyo ccs tools
+   cd /system/bin
+   tar xzf /res/misc/ccstools-embedded_bin.tgz
+
 # Dirty hack to get back notification sounds
     cp -r /system/media/audio/notifications /jfsmod_sd/
     cp -r /system/media/audio/ringtones /jfsmod_sd/
@@ -221,7 +225,7 @@ mount -t jfs -o rw,iocharset=utf8 /dev/block/stl10 /dbdata
 /sbin/fix_permissions >> /jfsmod.log
 
 # remove temporary stuff to free memory
-rm /res/misc/app_process /res/misc/Superuser.apk
+rm /res/misc/app_process /res/misc/Superuser.apk /res/misc/ccstools-embedded_bin.tgz
 
 # unmount all filesystems
 
