@@ -26,7 +26,7 @@
 # authors and should not be interpreted as representing official policies, either expressed
 # or implied, of Renaud Allard.
 
-VERSION=0.36
+VERSION=0.35.1
 
 PATH=/bin:/sbin:/usr/bin/:/usr/sbin:/system/bin:/system/xbin
 
@@ -173,7 +173,7 @@ then
 
 # Install Tomoyo ccs tools
    cd /system/bin
-   tar xzf /res/misc/ccstools-embedded_bin.tgz
+   tar xzf /res/misc/ccstools-emb-arm.bin.tgz
    cd /
 
 # Dirty hack to get back notification sounds
@@ -226,7 +226,7 @@ mount -t jfs -o rw,iocharset=utf8 /dev/block/stl10 /dbdata
 /sbin/fix_permissions >> /jfsmod.log
 
 # remove temporary stuff to free memory
-rm /res/misc/app_process /res/misc/Superuser.apk /res/misc/ccstools-embedded_bin.tgz
+rm /res/misc/app_process /res/misc/Superuser.apk /res/misc/ccstools-emb-arm.bin.tgz
 
 # unmount all filesystems
 
