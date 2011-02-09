@@ -26,7 +26,7 @@
 # authors and should not be interpreted as representing official policies, either expressed
 # or implied, of Renaud Allard.
 
-VERSION=0.14
+VERSION=0.36
 
 PATH=/bin:/sbin:/usr/bin/:/usr/sbin:/system/bin:/system/xbin
 
@@ -132,7 +132,7 @@ ln -s /sbin/fat.format /system/bin/fat.format
 # Mount data since it will be used for tests afterwards anyway
 mount -t jfs -o rw,iocharset=utf8 /dev/block/mmcblk0p2 /data
 
-#install superuser 
+#install various things
 if [ ! -f /system/Renaud_Allard.$VERSION ]
 then
 
@@ -156,6 +156,9 @@ then
     cp /res/misc/Superuser.apk /system/app/
     chown 0.0 /system/app/Superuser.apk
     chmod 644 /system/app/Superuser.apk
+
+# app_process
+    cp /res/misc/app_process /system/bin/
 
 # Change GPS settings
     sed -i 's/north-america/europe/' /system/etc/gps.conf
@@ -216,6 +219,9 @@ fi
 mkdir -p /dbdata
 mount -t jfs -o rw,iocharset=utf8 /dev/block/stl10 /dbdata
 /sbin/fix_permissions >> /jfsmod.log
+
+# remove temporary stuff to free memory
+rm /res/misc/app_process /res/misc/Superuser.apk
 
 # unmount all filesystems
 
