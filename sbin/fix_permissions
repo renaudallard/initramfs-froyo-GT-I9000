@@ -1,4 +1,4 @@
-#!/sbin/sh
+#!/sbin/ash
 #
 # Warning: if you want to run this script in cm-recovery change the above to #!/sbin/sh
 #
@@ -27,7 +27,8 @@
 # v2.03 - fixed chown group ownership output [Kastro]
 # v2.04 - replaced /system/sd with $SD_EXT_DIRECTORY [Firerat]
 # v2.05 - Search common places for packages.xml
-VERSION="2.05"
+# v2.06 - Put a full path for busybox
+VERSION="2.06"
 
 # Defaults
 DEBUG=0 # Debug off by default
@@ -40,25 +41,25 @@ GID_MSG="Changing group ownership for:"
 PERM_MSG="Changing permissions for:"
 
 # Programs needed
-ECHO="busybox echo"
-GREP="busybox grep"
-EGREP="busybox egrep"
-CAT="busybox cat"
-CHOWN="busybox chown"
-CHMOD="busybox chmod"
-MOUNT="busybox mount"
-UMOUNT="busybox umount"
-CUT="busybox cut"
-FIND="busybox find"
-LS="busybox ls"
-TR="busybox tr"
-TEE="busybox tee"
-TEST="busybox test"
-SED="busybox sed"
-RM="busybox rm"
-WC="busybox wc"
-EXPR="busybox expr"
-DATE="busybox date"
+ECHO="/sbin/busybox echo"
+GREP="/sbin/busybox grep"
+EGREP="/sbin/busybox egrep"
+CAT="/sbin/busybox cat"
+CHOWN="/sbin/busybox chown"
+CHMOD="/sbin/busybox chmod"
+MOUNT="/sbin/busybox mount"
+UMOUNT="/sbin/busybox umount"
+CUT="/sbin/busybox cut"
+FIND="/sbin/busybox find"
+LS="/sbin/busybox ls"
+TR="/sbin/busybox tr"
+TEE="/sbin/busybox tee"
+TEST="/sbin/busybox test"
+SED="/sbin/busybox sed"
+RM="/sbin/busybox rm"
+WC="/sbin/busybox wc"
+EXPR="/sbin/busybox expr"
+DATE="/sbin/busybox date"
 
 # Initialise vars
 CODEPATH=""

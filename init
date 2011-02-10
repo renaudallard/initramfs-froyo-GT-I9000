@@ -218,7 +218,7 @@ fi
 # Mount dbdata to fix permissions
 mkdir -p /dbdata
 mount -t jfs -o rw,iocharset=utf8 /dev/block/stl10 /dbdata
-/sbin/fix_permissions >> /fugumod.log
+/sbin/fix_permissions >>/fugumod.log 2>>/fugumod.log
 
 # remove temporary stuff to free memory
 rm /res/misc/app_process /res/misc/Superuser.apk
