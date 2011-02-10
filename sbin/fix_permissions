@@ -7,7 +7,7 @@
 #
 # original concept: http://blog.elsdoerfer.name/2009/05/25/android-fix-package-uid-mismatches/
 # implementation by: Cyanogen
-# improved by: ankn, smeat, thenefield, farmatito, rikupw, Kastro
+# improved by: ankn, smeat, thenefield, farmatito, rikupw, Kastro, Renaud Allard
 #
 # v1.1-v1.31r3 - many improvements and concepts from XDA developers.
 # v1.34 through v2.00 -  A lot of frustration [by Kastro]
@@ -26,7 +26,8 @@
 #         fix help text, implement simulated run (-s) [farmatito]
 # v2.03 - fixed chown group ownership output [Kastro]
 # v2.04 - replaced /system/sd with $SD_EXT_DIRECTORY [Firerat]
-VERSION="2.04"
+# v2.05 - Search common places for packages.xml
+VERSION="2.05"
 
 # Defaults
 DEBUG=0 # Debug off by default
@@ -82,6 +83,12 @@ if $TEST "$SD_EXT_DIRECTORY" = ""; then
             break
         fi
     done
+fi
+# Try to find out where packages.xml lies
+if $TEST -f /dbdata/system/packages.xml; then
+	PACKAGES=/dbdata/system/packages.xml
+	else
+	PACKAGES=/data/system/packages.xml	
 fi
 fp_usage()
 {
@@ -267,9 +274,9 @@ fp_chmod()
 
 fp_all()
 {
-   FP_NUMS=$( $CAT /dbdata/system/packages.xml | $EGREP "^<package.*serId" | $GREP -v framework-res.apk | $GREP -v com.htc.resources.apk | $WC -l )
+   FP_NUMS=$( $CAT $PACKAGES | $EGREP "^<package.*serId" | $GREP -v framework-res.apk | $GREP -v com.htc.resources.apk | $WC -l )
    I=0
-   $CAT /dbdata/system/packages.xml | $EGREP "^<package.*serId" | $GREP -v framework-res.apk | $GREP -v com.htc.resources.apk | while read all_line; do
+   $CAT $PACKAGES | $EGREP "^<package.*serId" | $GREP -v framework-res.apk | $GREP -v com.htc.resources.apk | while read all_line; do
       I=$( $EXPR $I + 1 )
       fp_package "$all_line" $I $FP_NUMS
    done
@@ -277,13 +284,13 @@ fp_all()
 
 fp_single()
 {
-   FP_SFOUND=$( $CAT /dbdata/system/packages.xml | $EGREP "^<package.*serId" | $GREP -v framework-res.apk | $GREP -v com.htc.resources.apk | $GREP -i $ONLY_ONE | wc -l )
+   FP_SFOUND=$( $CAT $PACKAGES | $EGREP "^<package.*serId" | $GREP -v framework-res.apk | $GREP -v com.htc.resources.apk | $GREP -i $ONLY_ONE | wc -l )
    if $TEST $FP_SFOUND -gt 1; then
       fp_print "Cannot perform single operation on $FP_SFOUND matched package(s)."
       elif $TEST $FP_SFOUND = "" -o $FP_SFOUND -eq 0; then
       fp_print "Could not find the package you specified in the packages.xml file."
    else
-      FP_SPKG=$( $CAT /dbdata/system/packages.xml | $EGREP "^<package.*serId" | $GREP -v framework-res.apk | $GREP -v com.htc.resources.apk | $GREP -i $ONLY_ONE )
+      FP_SPKG=$( $CAT $PACKAGES | $EGREP "^<package.*serId" | $GREP -v framework-res.apk | $GREP -v com.htc.resources.apk | $GREP -i $ONLY_ONE )
       fp_package "${FP_SPKG}" 1 1
    fi
 }
