@@ -303,7 +303,7 @@ make_exception1() {
 	#
 	# Make initializers.
 	#
-	for i in '/init' '/sbin/ccs-editpolicy-agent' '/system/bin/app_process'
+	for i in '/init_samsung' '/sbin/ccs-editpolicy-agent' '/system/bin/app_process'
 		do echo initialize_domain $i
 	done
 	
