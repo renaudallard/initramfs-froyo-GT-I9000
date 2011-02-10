@@ -26,11 +26,11 @@
 # authors and should not be interpreted as representing official policies, either expressed
 # or implied, of Renaud Allard.
 
-VERSION=0.35.1
+VERSION=0.35.2
 
 PATH=/bin:/sbin:/usr/bin/:/usr/sbin:/system/bin:/system/xbin
 
-date > /jfsmod.log
+date > /fugumod.log
 
 # standard
 mkdir /dev
@@ -68,27 +68,27 @@ insmod /lib/modules/fsr_stl.ko
 mkdir /jfsmod_sd
 mount -t vfat -o utf8 /dev/block/mmcblk0p1 /jfsmod_sd
 
-if /sbin/jfs_fsck -p /dev/block/mmcblk0p2 >> /jfsmod.log
+if /sbin/jfs_fsck -p /dev/block/mmcblk0p2 >> /fugumod.log
 then
-	echo "`date` : fsck is OK, so we are definitely on jfs already" >> /jfsmod.log
+	echo "`date` : fsck is OK, so we are definitely on jfs already" >> /fugumod.log
 	for DEVICE in stl10 stl11 stl9
 	do
-		/sbin/jfs_fsck -p /dev/block/$DEVICE >> /jfsmod.log
+		/sbin/jfs_fsck -p /dev/block/$DEVICE >> /fugumod.log
 	done
 else
 	insmod /rfs/rfs_glue.ko
 	insmod /rfs/rfs_fat.ko
-	echo "list inserted modules `lsmod`" >> /jfsmod.log
-	echo "`date` :fsck failed so, we are probably on rfs or there is a huge problem, better reformat than BSOD" >> /jfsmod.log
+	echo "list inserted modules `lsmod`" >> /fugumod.log
+	echo "`date` :fsck failed so, we are probably on rfs or there is a huge problem, better reformat than BSOD" >> /fugumod.log
 	mkdir /jfsmod_data
 
 	for DEVICE in mmcblk0p2 stl10 stl11 stl9
 	do
 		REFORMAT=YES
-		echo "mount $DEVICE" >> /jfsmod.log
+		echo "mount $DEVICE" >> /fugumod.log
 		# if we cannot mount in rfs, that means it's corrupted jfs and should be cleared
 		mount -t rfs -o nosuid,nodev,check=no /dev/block/$DEVICE /jfsmod_data
-		echo "`date` : archiving data" >> /jfsmod.log
+		echo "`date` : archiving data" >> /fugumod.log
 		cd /jfsmod_data/
 		tar cf /jfsmod_sd/jfsmod_data.tar *
 		cd /
@@ -99,19 +99,19 @@ else
 			then
 			if /sbin/jfs_fsck -p /dev/block/$DEVICE
 			then
-				echo "system was already jfs, so we don't reformat" >> /jfsmod.log
+				echo "system was already jfs, so we don't reformat" >> /fugumod.log
 				REFORMAT=NO
 			fi
 		fi
 		if [ REFORMAT == 'NO' ]
 		then
-			echo "`date` : ack no reformat for /system" >> /jfsmod.log
+			echo "`date` : ack no reformat for /system" >> /fugumod.log
 		else
-			echo "`date` : formatting data" >> /jfsmod.log
+			echo "`date` : formatting data" >> /fugumod.log
 			dd if=/dev/zero of=/dev/block/$DEVICE bs=1024 count=10
-			jfs_mkfs -q /dev/block/$DEVICE >> /jfsmod.log
+			jfs_mkfs -q /dev/block/$DEVICE >> /fugumod.log
 			mount -t jfs -o rw,noatime,nodiratime,iocharset=utf8 /dev/block/$DEVICE /jfsmod_data
-			echo "`date` : unarchiving data" >> /jfsmod.log
+			echo "`date` : unarchiving data" >> /fugumod.log
 			cd /jfsmod_data/
 			tar xf /jfsmod_sd/jfsmod_data.tar
 			cd /
@@ -171,18 +171,13 @@ then
 # install backlight lib
     cp /res/misc/liblight_binary/lights.s5pc110.so /system/lib/hw/
 
-# Install Tomoyo ccs tools
-   cd /system/bin
-   tar xzf /res/misc/ccstools-emb-arm.bin.tgz
-   cd /
-
 # Dirty hack to get back notification sounds
     cp -r /system/media/audio/notifications /jfsmod_sd/
     cp -r /system/media/audio/ringtones /jfsmod_sd/
     cp -r /system/media/audio/alarms /jfsmod_sd/
 
 # clear Dalvik cache as it can cause issues when upgrading
-#   rm -rf /data/dalvik-cache/* && echo "Dalvik cache cleared" >> /jfsmod.log
+#   rm -rf /data/dalvik-cache/* && echo "Dalvik cache cleared" >> /fugumod.log
 
 # Once be enough
     echo 1 > /system/Renaud_Allard.$VERSION
@@ -223,10 +218,10 @@ fi
 # Mount dbdata to fix permissions
 mkdir -p /dbdata
 mount -t jfs -o rw,iocharset=utf8 /dev/block/stl10 /dbdata
-/sbin/fix_permissions >> /jfsmod.log
+/sbin/fix_permissions >> /fugumod.log
 
 # remove temporary stuff to free memory
-rm /res/misc/app_process /res/misc/Superuser.apk /res/misc/ccstools-emb-arm.bin.tgz
+rm /res/misc/app_process /res/misc/Superuser.apk
 
 # unmount all filesystems
 

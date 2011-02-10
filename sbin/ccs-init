@@ -1,0 +1,17 @@
+#! /system/bin/sh
+
+echo /sbin/ccs-loadpolicy > /proc/ccs/manager
+echo /sbin/ccs-setprofile > /proc/ccs/manager
+echo /sbin/ccs-editpolicy-agent > /proc/ccs/manager
+
+# Initializing dummy profile 0 (disabled)
+echo 'ccs-init: MAC is disabled.'
+echo 0-MAC_FOR_FILE=disabled > /proc/ccs/profile
+
+if cd /data/ccs/ 2> /dev/null
+then
+	/sbin/ccs-loadpolicy p m
+	/sbin/ccs-loadpolicy a
+fi
+
+
