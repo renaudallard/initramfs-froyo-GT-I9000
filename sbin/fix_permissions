@@ -28,6 +28,7 @@
 # v2.04 - replaced /system/sd with $SD_EXT_DIRECTORY [Firerat]
 # v2.05 - Search common places for packages.xml
 # v2.06 - Put a full path for busybox
+# v2.07 - Permissions for /dbdata/databases should be corrected too
 VERSION="2.06"
 
 # Defaults
@@ -358,7 +359,7 @@ fp_package()
    #the data/data for the package
    if $TEST -d "/data/data/$PACKAGE"; then
       #find all directories in /data/data/$PACKAGE
-      $FIND /data/data/$PACKAGE -type d -exec $LS -ldn {} \; | while read dataline; do
+      $FIND /*data/data*/$PACKAGE -type d -exec $LS -ldn {} \; | while read dataline; do
          #get existing permissions of that directory
          OLD_PER=$( $ECHO $dataline | $CUT -d ' ' -f1 )
          OLD_UID=$( $ECHO $dataline | $CUT -d ' ' -f3 )
