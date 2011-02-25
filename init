@@ -60,8 +60,7 @@ mknod /dev/block/stl11 b 138 11
 mknod /dev/block/stl12 b 138 12
 
 #ramzswap
-mknod /dev/ramzswap0 b 253 0 >>/fugumod.log 2>>/fugumod.log
-ls -l /dev/ramzswap0 >>/fugumod.log 2>>/fugumod.log
+mknod /dev/ramzswap0 b 253 0
 
 mount -t proc proc /proc
 mount -t sysfs sys /sys
@@ -225,8 +224,8 @@ mount -t jfs -o rw,iocharset=utf8 /dev/block/stl10 /dbdata
 rm /res/misc/Superuser.apk
 
 # enable ramzswap
-/sbin/rzscontrol /dev/ramzswap0 --init >>/fugumod.log 2>>/fugumod.log
-/sbin/swapon /dev/ramzswap0 >>/fugumod.log 2>>/fugumod.log
+/sbin/rzscontrol /dev/ramzswap0 --init
+/sbin/swapon /dev/ramzswap0
 
 # unmount all filesystems
 
