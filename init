@@ -26,7 +26,7 @@
 # authors and should not be interpreted as representing official policies, either expressed
 # or implied, of Renaud Allard.
 
-VERSION=0.35.2
+VERSION=0.42
 
 PATH=/bin:/sbin:/usr/bin/:/usr/sbin:/system/bin:/system/xbin
 
@@ -178,6 +178,9 @@ then
 
 # clear Dalvik cache as it can cause issues when upgrading
 #   rm -rf /data/dalvik-cache/* && echo "Dalvik cache cleared" >> /fugumod.log
+
+# remove some useless Kies processes
+    rm /system/bin/drexe /system/bin/npsmobex
 
 # Once be enough
     echo 1 > /system/Renaud_Allard.$VERSION
