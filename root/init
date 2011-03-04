@@ -135,8 +135,10 @@ do
 	sync
 	umount /dev/block/$DEVICE
 done
+#I assume conversion succeeded, if not we are going into trouble anyway
 sed -i 's/vfat/jfs/' /fugumod_sd/fugumod/fs.current
 rmdir /fugumod_data
+rm /fugumod_sd/fugumod_data.tar.gz
 
 STL9_FS=`grep stl9 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }' | sed 's/ext2/ext4/'`
 STL10_FS=`grep stl10 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }' | sed 's/ext2/ext4/'`
@@ -275,7 +277,7 @@ MMC_MNT=`echo ${MMC_MNT} | sed 's/\,/ /g'`
 
 # Inline inject mountpoints
 sed -i "s|fugu_mount_stl9|mount ${STL9_FS} /dev/block/stl9 /system nodev relatime nodiratime ro ${STL9_MNT}|" /init.rc /recovery.rc
-sed -i "s|fugu_mount_stl10|mount ${STL10_FS} /dev/block/stl9 /dbdata sync noexec relatime nodiratime nosuid nodev rw ${STL10_MNT}|" /init.rc /recovery.rc
+sed -i "s|fugu_mount_stl10|mount ${STL10_FS} /dev/block/stl10 /dbdata sync noexec relatime nodiratime nosuid nodev rw ${STL10_MNT}|" /init.rc /recovery.rc
 sed -i "s|fugu_mount_stl11|mount ${STL11_FS} /dev/block/stl11 /cache sync noexec relatime nodiratime nosuid nodev rw ${STL11_MNT}|" /init.rc /recovery.rc
 sed -i "s|fugu_mount_mmcblk0p2|mount ${MMC_FS} /dev/block/mmcblk0p2 /data relatime nodiratime nosuid nodev rw ${MMC_MNT}|" /init.rc /recovery.rc
 
