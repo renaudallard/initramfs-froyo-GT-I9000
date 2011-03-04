@@ -68,8 +68,8 @@ mount -t sysfs sys /sys
 insmod /lib/modules/fsr.ko
 insmod /lib/modules/fsr_stl.ko
 
-mkdir /jfsmod_sd
-mount -t vfat -o utf8 /dev/block/mmcblk0p1 /jfsmod_sd
+mkdir /fugumod_sd
+mount -t vfat -o utf8 /dev/block/mmcblk0p1 /fugumod_sd
 
 if /sbin/jfs_fsck -p /dev/block/mmcblk0p2 >> /fugumod.log
 then
@@ -83,17 +83,17 @@ else
 	insmod /rfs/rfs_fat.ko
 	echo "list inserted modules `lsmod`" >> /fugumod.log
 	echo "`date` :fsck failed so, we are probably on rfs or there is a huge problem, better reformat than BSOD" >> /fugumod.log
-	mkdir /jfsmod_data
+	mkdir /fugumod_data
 
 	for DEVICE in mmcblk0p2 stl10 stl11 stl9
 	do
 		REFORMAT=YES
 		echo "mount $DEVICE" >> /fugumod.log
 		# if we cannot mount in rfs, that means it's corrupted jfs and should be cleared
-		mount -t rfs -o nosuid,nodev,check=no /dev/block/$DEVICE /jfsmod_data
+		mount -t rfs -o nosuid,nodev,check=no /dev/block/$DEVICE /fugumod_data
 		echo "`date` : archiving data" >> /fugumod.log
-		cd /jfsmod_data/
-		tar cf /jfsmod_sd/jfsmod_data.tar *
+		cd /fugumod_data/
+		tar cf /fugumod_sd/fugumod_data.tar *
 		cd /
 		sync
 		umount /dev/block/$DEVICE
@@ -113,17 +113,17 @@ else
 			echo "`date` : formatting data" >> /fugumod.log
 			dd if=/dev/zero of=/dev/block/$DEVICE bs=1024 count=10
 			jfs_mkfs -q /dev/block/$DEVICE >> /fugumod.log
-			mount -t jfs -o rw,noatime,nodiratime,iocharset=utf8 /dev/block/$DEVICE /jfsmod_data
+			mount -t jfs -o rw,noatime,nodiratime,iocharset=utf8 /dev/block/$DEVICE /fugumod_data
 			echo "`date` : unarchiving data" >> /fugumod.log
-			cd /jfsmod_data/
-			tar xf /jfsmod_sd/jfsmod_data.tar
+			cd /fugumod_data/
+			tar xf /fugumod_sd/fugumod_data.tar
 			cd /
 			sync
 			umount /dev/block/$DEVICE
 		fi
 	done
 
-	rm /jfsmod_sd/jfsmod_data.tar
+	rm /fugumod_sd/fugumod_data.tar
 fi
 
 
@@ -172,9 +172,9 @@ then
     cp /res/misc/liblight_binary/lights.s5pc110.so /system/lib/hw/
 
 # Dirty hack to get back notification sounds
-    cp -r /system/media/audio/notifications /jfsmod_sd/
-    cp -r /system/media/audio/ringtones /jfsmod_sd/
-    cp -r /system/media/audio/alarms /jfsmod_sd/
+    cp -r /system/media/audio/notifications /fugumod_sd/
+    cp -r /system/media/audio/ringtones /fugumod_sd/
+    cp -r /system/media/audio/alarms /fugumod_sd/
 
 # clear Dalvik cache as it can cause issues when upgrading
 #   rm -rf /data/dalvik-cache/* && echo "Dalvik cache cleared" >> /fugumod.log
@@ -194,15 +194,15 @@ then
 # Copy /efs
     insmod /rfs/rfs_glue.ko
     insmod /rfs/rfs_fat.ko
-    mkdir /jfsmod_efs
-    mount -t rfs -o ro,nosuid,nodev,check=no /dev/block/stl3 /jfsmod_efs
+    mkdir /fugumod_efs
+    mount -t rfs -o ro,nosuid,nodev,check=no /dev/block/stl3 /fugumod_efs
     mkdir /data/efs
-    cp -rp /jfsmod_efs/* /data/efs/
-    cp -rp /jfsmod_efs/.* /data/efs/
+    cp -rp /fugumod_efs/* /data/efs/
+    cp -rp /fugumod_efs/.* /data/efs/
     chown -R 1001:1001 /data/efs
     chmod 0771 /data/efs
-    umount /jfsmod_efs
-    rmdir /jfsmod_efs
+    umount /fugumod_efs
+    rmdir /fugumod_efs
 fi
 
 # Test if bootanimation is present and playable and if it is make the service
@@ -236,7 +236,7 @@ umount /dbdata
 umount /data
 umount /system
 umount /dev/block/mmcblk0p1
-rmdir /jfsmod_sd
+rmdir /fugumod_sd
 
 exec /init_samsung
 
