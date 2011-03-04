@@ -113,7 +113,7 @@ jfs)
 	/sbin/jfs_fsck -p /dev/block/${DEVICE} >> /fugumod.log
 ;;
 ext*)
-	/sbin/fsck /dev/block/${DEVICE} >> /fugumod.log
+	/sbin/e2fsck /dev/block/${DEVICE} >> /fugumod.log
 ;;
 	esac
 done
@@ -125,7 +125,7 @@ do
 	mount -t rfs -o nosuid,nodev,check=no /dev/block/${DEVICE} /fugumod_data
 	echo "`date` : archiving ${DEVICE}" >> /fugumod.log
 	cd /fugumod_data/
-	tar czf /fugumod_sd/fugumod_data.tar.gz *
+	tar cf /fugumod_sd/fugumod_data.tar *
 	cd /
 	sync
 	umount /dev/block/${DEVICE}
@@ -135,7 +135,7 @@ do
 	mount -t jfs -o rw,noatime,nodiratime,iocharset=utf8 /dev/block/${DEVICE} /fugumod_data
 	echo "`date` : unarchiving ${DEVICE}" >> /fugumod.log
 	cd /fugumod_data/
-	tar xzf /fugumod_sd/fugumod_data.tar.gz
+	tar xf /fugumod_sd/fugumod_data.tar
 	cd /
 	sync
 	umount /dev/block/${DEVICE}
@@ -143,7 +143,7 @@ done
 #I assume conversion succeeded, if not we are going into trouble anyway and nothing will solve this
 sed -i 's/vfat/jfs/' /fugumod_sd/fugumod/fs.current
 rmdir /fugumod_data
-rm /fugumod_sd/fugumod_data.tar.gz
+rm /fugumod_sd/fugumod_data.tar
 
 #check if we need to convert something (from sanitized output)
 if test -f /fugumod_sd/fugumod/fs.convert
@@ -166,17 +166,17 @@ esac
 			mount -o ro ${DEVICE} /fugumod_data
 			echo "`date` : archiving ${DEVICE} for conversion" >> /fugumod.log
 			cd /fugumod_data/
-			tar czf /fugumod_sd/fugumod_data.tar.gz *
+			tar cf /fugumod_sd/fugumod_data.tar *
 			cd /
 			sync
 			umount /dev/block/${DEVICE}
 			echo "`date` : formatting ${DEVICE} for conversion" >> /fugumod.log
-			dd if=/dev/zero of=/dev/block/$DEVICE bs=1024 count=10
-			${MKFS} /dev/block/$DEVICE >> /fugumod.log
+			dd if=/dev/zero of=/dev/block/${DEVICE} bs=1024 count=10
+			${MKFS} /dev/block/${DEVICE} >> /fugumod.log
 			mount -t $NEW_FS -o rw,noatime,nodiratime /dev/block/${DEVICE} /fugumod_data
 			echo "`date` : unarchiving ${DEVICE}" >> /fugumod.log
 			cd /fugumod_data/
-			tar xzf /fugumod_sd/fugumod_data.tar.gz
+			tar xf /fugumod_sd/fugumod_data.tar
 			cd /
 			sync
 			umount /dev/block/${DEVICE}
@@ -186,6 +186,7 @@ esac
 	rmdir /fugumod_data
 	#regenerate a fs.current
 	build_fs_current
+	rm /fugumod_sd/fugumod_data.tar
 fi
 
 # get filesystems
