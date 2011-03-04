@@ -92,69 +92,85 @@ then
 	rmdir /fugu_mnt
 fi
 
-if /sbin/jfs_fsck -p /dev/block/mmcblk0p2 >> /fugumod.log
+#Insert RFS modules if any filesystem is rfs
+if grep vfat /fugumod_sd/fugumod/fs.current
 then
-	echo "`date` : fsck is OK, so we are definitely on jfs already" >> /fugumod.log
-	for DEVICE in stl10 stl11 stl9
-	do
-		/sbin/jfs_fsck -p /dev/block/$DEVICE >> /fugumod.log
-	done
-else
+	echo "RFS detected: inserting modules" >> /fugumod.log
 	insmod /rfs/rfs_glue.ko
 	insmod /rfs/rfs_fat.ko
-	echo "list inserted modules `lsmod`" >> /fugumod.log
-	echo "`date` :fsck failed so, we are probably on rfs or there is a huge problem, better reformat than BSOD" >> /fugumod.log
-	mkdir /fugumod_data
-
-	for DEVICE in mmcblk0p2 stl10 stl11 stl9
-	do
-		REFORMAT=YES
-		echo "mount $DEVICE" >> /fugumod.log
-		# if we cannot mount in rfs, that means it's corrupted jfs and should be cleared
-		mount -t rfs -o nosuid,nodev,check=no /dev/block/$DEVICE /fugumod_data
-		echo "`date` : archiving data" >> /fugumod.log
-		cd /fugumod_data/
-		tar cf /fugumod_sd/fugumod_data.tar *
-		cd /
-		sync
-		umount /dev/block/$DEVICE
-		#ensure we don't reformat /system after a conversion because that would hurt
-		if [ $DEVICE == 'stl9' ]
-			then
-			if /sbin/jfs_fsck -p /dev/block/$DEVICE
-			then
-				echo "system was already jfs, so we don't reformat" >> /fugumod.log
-				REFORMAT=NO
-			fi
-		fi
-		if [ REFORMAT == 'NO' ]
-		then
-			echo "`date` : ack no reformat for /system" >> /fugumod.log
-		else
-			echo "`date` : formatting data" >> /fugumod.log
-			dd if=/dev/zero of=/dev/block/$DEVICE bs=1024 count=10
-			jfs_mkfs -q /dev/block/$DEVICE >> /fugumod.log
-			mount -t jfs -o rw,noatime,nodiratime,iocharset=utf8 /dev/block/$DEVICE /fugumod_data
-			echo "`date` : unarchiving data" >> /fugumod.log
-			cd /fugumod_data/
-			tar xf /fugumod_sd/fugumod_data.tar
-			cd /
-			sync
-			umount /dev/block/$DEVICE
-		fi
-	done
-
-	rm /fugumod_sd/fugumod_data.tar
 fi
 
+#fsck filesystems
+for DEVICE in mmcblk0p2 stl10 stl11 stl9
+do
+	case `grep ${DEVICE} /fugumod_sd/fugumod/fs.current | awk '{ print $2 }'` in
+jfs)
+	/sbin/jfs_fsck -p /dev/block/$DEVICE >> /fugumod.log
+;;
+ext*)
+	/sbin/fsck /dev/block/$DEVICE >> /fugumod.log
+;;
+	esac
+done
 
+#convert remaining rfs to jfs
+mkdir /fugumod_data
+grep vfat /fugumod_sd/fugumod/fs.current | while read DEVICE
+do
+	mount -t rfs -o nosuid,nodev,check=no /dev/block/$DEVICE /fugumod_data
+	echo "`date` : archiving data" >> /fugumod.log
+	cd /fugumod_data/
+	tar czf /fugumod_sd/fugumod_data.tar.gz *
+	cd /
+	sync
+	umount /dev/block/$DEVICE
+	echo "`date` : formatting data" >> /fugumod.log
+	dd if=/dev/zero of=/dev/block/$DEVICE bs=1024 count=10
+	jfs_mkfs -q /dev/block/$DEVICE >> /fugumod.log
+	mount -t jfs -o rw,noatime,nodiratime,iocharset=utf8 /dev/block/$DEVICE /fugumod_data
+	echo "`date` : unarchiving data" >> /fugumod.log
+	cd /fugumod_data/
+	tar xzf /fugumod_sd/fugumod_data.tar
+	cd /
+	sync
+	umount /dev/block/$DEVICE
+done
+sed -i 's/vfat/jfs/' /fugumod_sd/fugumod/fs.current
+rmdir /fugumod_data
+
+STL9_FS=`grep stl9 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }' | sed 's/ext2/ext4/'`
+STL10_FS=`grep stl10 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }' | sed 's/ext2/ext4/'`
+STL11_FS=`grep stl11 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }' | sed 's/ext2/ext4/'`
+MMC_FS=`grep mmcblk0p2 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }' | sed 's/ext2/ext4/'`
+
+case $STL9_FS in
+jfs)
+	STL9_MNT=',iocharset=utf8'
+;;
+esac
+case $STL10_FS in
+jfs)
+	STL10_MNT=',iocharset=utf8'
+;;
+esac
+case $STL11_FS in
+jfs)
+	STL11_MNT=',iocharset=utf8'
+;;
+esac
+case $MMC_FS in
+jfs)
+	MMC_MNT=',iocharset=utf8'
+;;
+esac
+	
 # Kill that stupid autoformatter
-mount -t jfs -o rw,iocharset=utf8 /dev/block/stl9 /system
+mount -t ${STL9_FS} -o rw${STL9_MNT} /dev/block/stl9 /system
 rm /system/bin/fat.format
 ln -s /sbin/fat.format /system/bin/fat.format
 
 # Mount data since it will be used for tests afterwards anyway
-mount -t jfs -o rw,iocharset=utf8 /dev/block/mmcblk0p2 /data
+mount -t ${MMC_FS} -o rw${MMC_MNT} /dev/block/mmcblk0p2 /data
 
 #install various things
 if [ ! -f /system/Renaud_Allard.$VERSION ]
@@ -241,7 +257,7 @@ fi
 
 # Mount dbdata to fix permissions
 mkdir -p /dbdata
-mount -t jfs -o rw,iocharset=utf8 /dev/block/stl10 /dbdata
+mount -t ${STL10_FS} -o rw${STL10_MNT} /dev/block/stl10 /dbdata
 /sbin/fix_permissions >>/fugumod.log
 
 # remove temporary stuff to free memory
@@ -250,6 +266,18 @@ rm /res/misc/Superuser.apk
 # enable ramzswap
 /sbin/rzscontrol /dev/ramzswap0 --init
 /sbin/swapon /dev/ramzswap0
+
+# modify mount options to inject in android inits
+STL9_MNT=`echo ${STL9_MNT} | sed 's/\,/ /g'`
+STL10_MNT=`echo ${STL10_MNT} | sed 's/\,/ /g'`
+STL11_MNT=`echo ${STL11_MNT} | sed 's/\,/ /g'`
+MMC_MNT=`echo ${MMC_MNT} | sed 's/\,/ /g'`
+
+# Inline inject mountpoints
+sed -i "s|fugu_mount_stl9|mount ${STL9_FS} /dev/block/stl9 /system nodev relatime nodiratime ro ${STL9_MNT}|" /init.rc /recovery.rc
+sed -i "s|fugu_mount_stl10|mount ${STL10_FS} /dev/block/stl9 /dbdata sync noexec relatime nodiratime nosuid nodev rw ${STL10_MNT}|" /init.rc /recovery.rc
+sed -i "s|fugu_mount_stl11|mount ${STL11_FS} /dev/block/stl11 /cache sync noexec relatime nodiratime nosuid nodev rw ${STL11_MNT}|" /init.rc /recovery.rc
+sed -i "s|fugu_mount_mmcblk0p2|mount ${MMC_FS} /dev/block/mmcblk0p2 /data relatime nodiratime nosuid nodev rw ${MMC_MNT}|" /init.rc /recovery.rc
 
 # unmount all filesystems
 
