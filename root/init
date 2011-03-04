@@ -71,6 +71,27 @@ insmod /lib/modules/fsr_stl.ko
 mkdir /fugumod_sd
 mount -t vfat -o utf8 /dev/block/mmcblk0p1 /fugumod_sd
 
+#Check if conf directory exists, if not create one
+if ! test -d /fugumod_sd/fugumod
+then
+	rm -rf /fugumod_sd/fugumod
+	mkdir /fugumod_sd/fugumod
+fi
+
+#Check if config exists, if not try to create it
+if ! test -f /fugumod_sd/fugumod/fs.current
+then
+	echo 'DO NOT MODIFY THIS FILE, YOUR SYSTEM WOULD NOT BE ABLE TO BOOT' > /fugumod_sd/fugumod/fs.current
+	mkdir /fugu_mnt
+	for DEVICE in mmcblk0p2 stl10 stl11 stl9
+	do
+		mount -o ro /dev/block/${DEVICE} /fugu_mnt
+		mount | awk '/\/fugu_mnt/ { print $1 " " $5 }' | awk -F "/" '{ print $4 }' >> /fugumod_sd/fugumod/fs.current
+		umount /fugu_mnt
+	done
+	rmdir /fugu_mnt
+fi
+
 if /sbin/jfs_fsck -p /dev/block/mmcblk0p2 >> /fugumod.log
 then
 	echo "`date` : fsck is OK, so we are definitely on jfs already" >> /fugumod.log
