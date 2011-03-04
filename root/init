@@ -30,6 +30,19 @@ VERSION=0.42
 
 PATH=/bin:/sbin:/usr/bin/:/usr/sbin:/system/bin:/system/xbin
 
+build_fs_current()
+{
+	echo 'DO NOT MODIFY THIS FILE, YOUR SYSTEM WOULD NOT BE ABLE TO BOOT' > /fugumod_sd/fugumod/fs.current
+	mkdir /fugu_mnt
+	for DEVICE in mmcblk0p2 stl10 stl11 stl9
+	do
+		mount -o ro /dev/block/${DEVICE} /fugu_mnt
+		mount | awk '/\/fugu_mnt/ { print $1 " " $5 }' | awk -F "/" '{ print $4 }' >> /fugumod_sd/fugumod/fs.current
+		umount /fugu_mnt
+	done
+	rmdir /fugu_mnt
+}
+
 date > /fugumod.log
 
 # standard
@@ -81,15 +94,7 @@ fi
 #Check if config exists, if not try to create it
 if ! test -f /fugumod_sd/fugumod/fs.current
 then
-	echo 'DO NOT MODIFY THIS FILE, YOUR SYSTEM WOULD NOT BE ABLE TO BOOT' > /fugumod_sd/fugumod/fs.current
-	mkdir /fugu_mnt
-	for DEVICE in mmcblk0p2 stl10 stl11 stl9
-	do
-		mount -o ro /dev/block/${DEVICE} /fugu_mnt
-		mount | awk '/\/fugu_mnt/ { print $1 " " $5 }' | awk -F "/" '{ print $4 }' >> /fugumod_sd/fugumod/fs.current
-		umount /fugu_mnt
-	done
-	rmdir /fugu_mnt
+	build_fs_current
 fi
 
 #Insert RFS modules if any filesystem is rfs
@@ -105,10 +110,10 @@ for DEVICE in mmcblk0p2 stl10 stl11 stl9
 do
 	case `grep ${DEVICE} /fugumod_sd/fugumod/fs.current | awk '{ print $2 }'` in
 jfs)
-	/sbin/jfs_fsck -p /dev/block/$DEVICE >> /fugumod.log
+	/sbin/jfs_fsck -p /dev/block/${DEVICE} >> /fugumod.log
 ;;
 ext*)
-	/sbin/fsck /dev/block/$DEVICE >> /fugumod.log
+	/sbin/fsck /dev/block/${DEVICE} >> /fugumod.log
 ;;
 	esac
 done
@@ -117,23 +122,23 @@ done
 mkdir /fugumod_data
 grep vfat /fugumod_sd/fugumod/fs.current | while read DEVICE
 do
-	mount -t rfs -o nosuid,nodev,check=no /dev/block/$DEVICE /fugumod_data
-	echo "`date` : archiving data" >> /fugumod.log
+	mount -t rfs -o nosuid,nodev,check=no /dev/block/${DEVICE} /fugumod_data
+	echo "`date` : archiving ${DEVICE}" >> /fugumod.log
 	cd /fugumod_data/
 	tar czf /fugumod_sd/fugumod_data.tar.gz *
 	cd /
 	sync
-	umount /dev/block/$DEVICE
+	umount /dev/block/${DEVICE}
 	echo "`date` : formatting data" >> /fugumod.log
-	dd if=/dev/zero of=/dev/block/$DEVICE bs=1024 count=10
-	jfs_mkfs -q /dev/block/$DEVICE >> /fugumod.log
-	mount -t jfs -o rw,noatime,nodiratime,iocharset=utf8 /dev/block/$DEVICE /fugumod_data
-	echo "`date` : unarchiving data" >> /fugumod.log
+	dd if=/dev/zero of=/dev/block/${DEVICE} bs=1024 count=10
+	jfs_mkfs -q /dev/block/${DEVICE} >> /fugumod.log
+	mount -t jfs -o rw,noatime,nodiratime,iocharset=utf8 /dev/block/${DEVICE} /fugumod_data
+	echo "`date` : unarchiving ${DEVICE}" >> /fugumod.log
 	cd /fugumod_data/
-	tar xzf /fugumod_sd/fugumod_data.tar
+	tar xzf /fugumod_sd/fugumod_data.tar.gz
 	cd /
 	sync
-	umount /dev/block/$DEVICE
+	umount /dev/block/${DEVICE}
 done
 #I assume conversion succeeded, if not we are going into trouble anyway and nothing will solve this
 sed -i 's/vfat/jfs/' /fugumod_sd/fugumod/fs.current
@@ -143,18 +148,47 @@ rm /fugumod_sd/fugumod_data.tar.gz
 #check if we need to convert something (from sanitized output)
 if test -f /fugumod_sd/fugumod/fs.convert
 then
+	mkdir /fugumod_data
 	egrep "stl|mmc" /fugumod_sd/fugumod/fs.convert | tr '\011' ' ' | sed 's/ */ /g' | sed 's/^ *//g' | awk '{ print $1 " " $2 }' | while read DEVICE NEW_FS
 	do
 		CUR_FS=`grep ${DEVICE} /fugumod_sd/fugumod/fs.current | awk '{ print $2 }'`
 		if [ "${CUR_FS}" != "${NEW_FS}" ]
 		then
 			echo "$DEVICE is in $CUR_FS and needs to be converted to $NEW_FS" >> /fugumod.log
+			case ${NEW_FS} in
+jfs)
+MKFS='jfs_mkfs -q '
+;;
+ext*)
+MKFS='mke2fs -J size=4 -T ext4 -b 4096 '
+;;
+esac
+			mount -o ro ${DEVICE} /fugumod_data
+			echo "`date` : archiving ${DEVICE} for conversion" >> /fugumod.log
+			cd /fugumod_data/
+			tar czf /fugumod_sd/fugumod_data.tar.gz *
+			cd /
+			sync
+			umount /dev/block/${DEVICE}
+			echo "`date` : formatting ${DEVICE} for conversion" >> /fugumod.log
+			dd if=/dev/zero of=/dev/block/$DEVICE bs=1024 count=10
+			${MKFS} /dev/block/$DEVICE >> /fugumod.log
+			mount -t $NEW_FS -o rw,noatime,nodiratime /dev/block/${DEVICE} /fugumod_data
+			echo "`date` : unarchiving ${DEVICE}" >> /fugumod.log
+			cd /fugumod_data/
+			tar xzf /fugumod_sd/fugumod_data.tar.gz
+			cd /
+			sync
+			umount /dev/block/${DEVICE}
 		fi
 	done
 	rm /fugumod_sd/fugumod/fs.convert
+	rmdir /fugumod_data
+	#regenerate a fs.current
+	build_fs_current
 fi
 
-
+# get filesystems
 STL9_FS=`grep stl9 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }' | sed 's/ext2/ext4/'`
 STL10_FS=`grep stl10 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }' | sed 's/ext2/ext4/'`
 STL11_FS=`grep stl11 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }' | sed 's/ext2/ext4/'`
