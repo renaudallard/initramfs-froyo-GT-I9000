@@ -135,10 +135,25 @@ do
 	sync
 	umount /dev/block/$DEVICE
 done
-#I assume conversion succeeded, if not we are going into trouble anyway
+#I assume conversion succeeded, if not we are going into trouble anyway and nothing will solve this
 sed -i 's/vfat/jfs/' /fugumod_sd/fugumod/fs.current
 rmdir /fugumod_data
 rm /fugumod_sd/fugumod_data.tar.gz
+
+#check if we need to convert something (from sanitized output)
+if test -f /fugumod_sd/fugumod/fs.convert
+then
+	egrep "stl|mmc" /fugumod_sd/fugumod/fs.convert | tr '\011' ' ' | sed 's/ */ /g' | sed 's/^ *//g' | awk '{ print $1 " " $2 }' | while read DEVICE NEW_FS
+	do
+		CUR_FS=`grep ${DEVICE} /fugumod_sd/fugumod/fs.current | awk '{ print $2 }'`
+		if [ "${CUR_FS}" != "${NEW_FS}" ]
+		then
+			echo "$DEVICE is in $CUR_FS and needs to be converted to $NEW_FS" >> /fugumod.log
+		fi
+	done
+	rm /fugumod_sd/fugumod/fs.convert
+fi
+
 
 STL9_FS=`grep stl9 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }' | sed 's/ext2/ext4/'`
 STL10_FS=`grep stl10 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }' | sed 's/ext2/ext4/'`
