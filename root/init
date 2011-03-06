@@ -350,6 +350,8 @@ umount /data
 umount /system
 umount /dev/block/mmcblk0p1
 rmdir /fugumod_sd
+#remove fake etc which is only useful to format filesystems
+rm -rf /etc
 
 exec /init_samsung
 
