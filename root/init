@@ -160,7 +160,7 @@ jfs)
 MKFS='jfs_mkfs -q '
 ;;
 ext*)
-MKFS='mke2fs -J size=4 -T ext4 -b 4096 '
+MKFS='mke2fs -J size=4 -T ext4 -b 4096 -O ^resize_inode,^ext_attr,^huge_file '
 ;;
 esac
 			mount -o ro ${DEVICE} /fugumod_data
@@ -172,7 +172,7 @@ esac
 			umount /dev/block/${DEVICE}
 			echo "`date` : formatting ${DEVICE} for conversion" >> /fugumod.log
 			dd if=/dev/zero of=/dev/block/${DEVICE} bs=1024 count=10
-			${MKFS} /dev/block/${DEVICE} >> /fugumod.log
+			${MKFS} /dev/block/${DEVICE} >> /fugumod.log 2>> /fugumod.log
 			mount -t $NEW_FS -o rw,noatime,nodiratime /dev/block/${DEVICE} /fugumod_data
 			echo "`date` : unarchiving ${DEVICE}" >> /fugumod.log
 			cd /fugumod_data/
