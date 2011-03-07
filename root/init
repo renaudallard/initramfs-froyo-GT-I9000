@@ -112,6 +112,9 @@ jfs)
 ext*)
 	/sbin/e2fsck /dev/block/${DEVICE} >> /fugumod.log
 ;;
+reiserfs)
+	/sbin/reiserfsck /dev/block/${DEVICE} >> /fugumod.log
+;;
 	esac
 done
 
@@ -154,10 +157,13 @@ then
 			echo "$DEVICE is in $CUR_FS and needs to be converted to $NEW_FS" >> /fugumod.log
 			case ${NEW_FS} in
 jfs)
-MKFS='jfs_mkfs -q '
+MKFS='/sbin/jfs_mkfs -q '
 ;;
 ext*)
-MKFS='mke2fs -J size=4 -T ext4 -b 4096 -O ^resize_inode,^ext_attr,^huge_file '
+MKFS='/sbin/mke2fs -J size=4 -T ext4 -b 4096 -O ^resize_inode,^ext_attr,^huge_file '
+;;
+reiserfs)
+MKFS='/sbin/mkreiserfs -q -b 4096 -s 1000 '
 ;;
 esac
 			mount -t ${CUR_FS} -o ro /dev/block/${DEVICE} /fugumod_data 2>>/fugumod.log
@@ -200,6 +206,9 @@ jfs)
 ext*)
 	STL9_MNT=',data=writeback,noauto_da_alloc,barrier=0'
 ;;
+reiserfs)
+	STL9_MNT='notail'
+;;
 esac
 case $STL10_FS in
 jfs)
@@ -207,6 +216,9 @@ jfs)
 ;;
 ext*)
 	STL10_MNT=',nodelalloc,data=ordered,noauto_da_alloc,barrier=0'
+;;
+reiserfs)
+	STL10_MNT=''
 ;;
 esac
 case $STL11_FS in
@@ -216,6 +228,9 @@ jfs)
 ext*)
 	STL11_MNT=',data=writeback,noauto_da_alloc,barrier=0'
 ;;
+reiserfs)
+	STL11_MNT=''
+;;
 esac
 case $MMC_FS in
 jfs)
@@ -223,6 +238,9 @@ jfs)
 ;;
 ext*)
 	MMC_MNT=',data=ordered,noauto_da_alloc,barrier=1'
+;;
+reiserfs)
+	MMC_MNT=''
 ;;
 esac
 	
