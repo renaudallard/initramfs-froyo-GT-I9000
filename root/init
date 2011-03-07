@@ -200,7 +200,7 @@ jfs)
 	STL9_MNT=',iocharset=utf8'
 ;;
 ext*)
-	STL9_MNT=',barrier=0,data=writeback,noauto_da_alloc'
+	STL9_MNT=',data=writeback,noauto_da_alloc,barrier=0'
 ;;
 esac
 case $STL10_FS in
@@ -208,7 +208,7 @@ jfs)
 	STL10_MNT=',iocharset=utf8'
 ;;
 ext*)
-	STL10_MNT=',barrier=0,nodelalloc,data=ordered,noauto_da_alloc'
+	STL10_MNT=',nodelalloc,data=ordered,noauto_da_alloc,barrier=0'
 ;;
 esac
 case $STL11_FS in
@@ -216,7 +216,7 @@ jfs)
 	STL11_MNT=',iocharset=utf8'
 ;;
 ext*)
-	STL11_MNT=',barrier=0,data=writeback,noauto_da_alloc'
+	STL11_MNT=',data=writeback,noauto_da_alloc,barrier=0'
 ;;
 esac
 case $MMC_FS in
@@ -224,7 +224,7 @@ jfs)
 	MMC_MNT=',iocharset=utf8'
 ;;
 ext*)
-	MMC_MNT=',barrier=1,data=ordered,noauto_da_alloc'
+	MMC_MNT=',data=ordered,noauto_da_alloc,barrier=1'
 ;;
 esac
 	
