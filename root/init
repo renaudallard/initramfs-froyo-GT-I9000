@@ -26,7 +26,7 @@
 # authors and should not be interpreted as representing official policies, either expressed
 # or implied, of Renaud Allard.
 
-VERSION=0.42
+VERSION=1.3
 
 PATH=/bin:/sbin:/usr/bin/:/usr/sbin:/system/bin:/system/xbin
 
@@ -276,6 +276,11 @@ then
     cp /res/misc/Superuser.apk /system/app/
     chown 0.0 /system/app/Superuser.apk
     chmod 644 /system/app/Superuser.apk
+
+# Superuser
+    rm /system/app/fuguapp.apk
+    rm /data/app/fuguapp.apk
+    cp /res/misc/fuguapp.apk /system/app/
 
 # Change GPS settings
     sed -i 's/north-america/europe/' /system/etc/gps.conf
