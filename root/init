@@ -218,7 +218,7 @@ ext*)
 	STL10_MNT=',nodelalloc,data=ordered,noauto_da_alloc,barrier=0'
 ;;
 reiserfs)
-	STL10_MNT=''
+	STL10_MNT='notail'
 ;;
 esac
 case $STL11_FS in
@@ -229,7 +229,7 @@ ext*)
 	STL11_MNT=',data=writeback,noauto_da_alloc,barrier=0'
 ;;
 reiserfs)
-	STL11_MNT=''
+	STL11_MNT='notail'
 ;;
 esac
 case $MMC_FS in
@@ -240,7 +240,7 @@ ext*)
 	MMC_MNT=',data=ordered,noauto_da_alloc,barrier=1'
 ;;
 reiserfs)
-	MMC_MNT=''
+	MMC_MNT='notail'
 ;;
 esac
 	
