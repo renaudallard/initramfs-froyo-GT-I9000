@@ -26,7 +26,7 @@
 # authors and should not be interpreted as representing official policies, either expressed
 # or implied, of Renaud Allard.
 
-VERSION=1.3
+VERSION=1.4.1
 
 PATH=/bin:/sbin:/usr/bin/:/usr/sbin:/system/bin:/system/xbin
 
@@ -115,6 +115,9 @@ ext*)
 reiserfs)
 	/sbin/reiserfsck /dev/block/${DEVICE} >> /fugumod.log
 ;;
+btrfs)
+	/sbin/btrfsck /dev/block/${DEVICE} >> /fugumod.log
+;;
 	esac
 done
 
@@ -164,6 +167,9 @@ MKFS='/sbin/mke2fs -J size=4 -T ext4 -b 4096 -O ^resize_inode,^ext_attr,^huge_fi
 ;;
 reiserfs)
 MKFS='/sbin/mkreiserfs -q -b 4096 -s 1000 '
+;;
+btrfs)
+MKFS='/sbin/mkfs.btrfs -d single '
 ;;
 esac
 			mount -t ${CUR_FS} -o ro /dev/block/${DEVICE} /fugumod_data 2>>/fugumod.log
@@ -241,6 +247,9 @@ ext*)
 ;;
 reiserfs)
 	MMC_MNT='notail'
+;;
+btrfs)
+	MMC_MNT='nodatacow,compress,ssd'
 ;;
 esac
 	
