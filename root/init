@@ -43,7 +43,9 @@ build_fs_current()
 	rmdir /fugu_mnt
 }
 
-date > /fugumod.log
+date >/fugumod.log
+echo "Version:$VERSION" >>/fugumod.log
+uname -a >>/fugumod.log
 
 # standard
 mkdir /dev
