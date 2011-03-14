@@ -43,7 +43,9 @@ build_fs_current()
 	rmdir /fugu_mnt
 }
 
-date > /fugumod.log
+date >/fugumod.log
+echo "Version:$VERSION" >>/fugumod.log
+uname -a >>/fugumod.log
 
 # standard
 mkdir /dev
@@ -213,7 +215,7 @@ ext*)
 	STL9_MNT=',data=writeback,noauto_da_alloc,barrier=0'
 ;;
 reiserfs)
-	STL9_MNT='notail'
+	STL9_MNT=',notail'
 ;;
 esac
 case $STL10_FS in
@@ -224,7 +226,7 @@ ext*)
 	STL10_MNT=',nodelalloc,data=ordered,noauto_da_alloc,barrier=0'
 ;;
 reiserfs)
-	STL10_MNT='notail'
+	STL10_MNT=',notail'
 ;;
 esac
 case $STL11_FS in
@@ -235,7 +237,7 @@ ext*)
 	STL11_MNT=',data=writeback,noauto_da_alloc,barrier=0'
 ;;
 reiserfs)
-	STL11_MNT='notail'
+	STL11_MNT=',notail'
 ;;
 esac
 case $MMC_FS in
@@ -246,10 +248,10 @@ ext*)
 	MMC_MNT=',data=ordered,noauto_da_alloc,barrier=1'
 ;;
 reiserfs)
-	MMC_MNT='notail'
+	MMC_MNT=',notail'
 ;;
 btrfs)
-	MMC_MNT='nodatacow,compress,ssd'
+	MMC_MNT=',nodatacow,compress,ssd'
 ;;
 esac
 	
