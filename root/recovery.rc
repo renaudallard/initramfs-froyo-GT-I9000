@@ -234,6 +234,10 @@ on boot
     write /proc/sys/vm/dirty_expire_centisecs 200
     write /proc/sys/vm/dirty_background_ratio  5
 
+    # Since it's recovery, enable adb as root
+    setprop ro.secure=0
+    setprop persist.service.adb.enable=1
+
     # Permissions for System Server and daemons.
     chown radio system /sys/android_power/state
     chown radio system /sys/android_power/request_state
