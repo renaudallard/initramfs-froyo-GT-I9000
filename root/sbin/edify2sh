@@ -30,8 +30,8 @@ set_perm() {
 package_extract_dir() {
 	SOURCE=$1
 	DEST=$2
-	cp -r /fugumod_sd/fugumod/zip_unpack/${SOURCE}/* ${DEST}
-	cp -r /fugumod_sd/fugumod/zip_unpack/${SOURCE}/.* ${DEST}
+	cp -rf /fugumod_sd/fugumod/zip_unpack/${SOURCE}/* ${DEST}
+#	cp -rf /fugumod_sd/fugumod/zip_unpack/${SOURCE}/.* ${DEST}
 }
 
 delete_recursive() {
@@ -50,7 +50,7 @@ symlink() {
 	cd /
 }
 	
-tr '\;' '\;\n' |
+sed -e 's/;/;\n/g' |
 while read LINE
 do
 	case $LINE in
