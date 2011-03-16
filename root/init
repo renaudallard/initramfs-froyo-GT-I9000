@@ -107,9 +107,10 @@ fi
 # Apply zip updates
 ls /fugumod_sd/fugumod/*.zip | while read UPDATE
 do
+	echo "Applying update ${UPDATE}" >>/fugumod.log
 	mkdir /fugumod_sd/fugumod/zip_unpack
 	unzip "${UPDATE}" -d /fugumod_sd/fugumod/zip_unpack
-	cat fugumod_sd/fugumod/zip_unpack/META-INF/com/google/android/updater-script | /sbin/edify2sh
+	cat fugumod_sd/fugumod/zip_unpack/META-INF/com/google/android/updater-script | /sbin/edify2sh >>/fugumod.log 2>>/fugumod.log
 	rm -rf /fugumod_sd/fugumod/zip_unpack
 done
 
