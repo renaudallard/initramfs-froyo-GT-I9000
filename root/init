@@ -93,7 +93,7 @@ then
 	mkdir /fugumod_sd/fugumod
 fi
 
-#Check if config exists, if not try to create it
+# Creates config
 build_fs_current
 
 #Insert RFS modules if any filesystem is rfs
@@ -103,6 +103,16 @@ then
 	insmod /rfs/rfs_glue.ko
 	insmod /rfs/rfs_fat.ko
 fi
+
+# Apply zip updates
+ls /fugumod_sd/fugumod/*.zip | while read UPDATE
+do
+	mkdir /fugumod_sd/fugumod/zip_unpack
+	unzip "${UPDATE}" -d /fugumod_sd/fugumod/zip_unpack
+	cat fugumod_sd/fugumod/zip_unpack/META-INF/com/google/android/updater-script | /sbin/edify2sh
+	rm -rf /fugumod_sd/fugumod/zip_unpack
+done
+
 
 #fsck filesystems
 for DEVICE in mmcblk0p2 stl10 stl11 stl9
