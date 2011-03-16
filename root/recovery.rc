@@ -333,7 +333,7 @@ on boot
 
 ## Daemon processes to be run by init.
 ##
-service console /sbin/ash
+service console /sbin/sh
     console
 
 service recovery /sbin/recovery.sh
