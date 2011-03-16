@@ -1,0 +1,95 @@
+#!/sbin/sh
+# This script tries to convert android edify updater script to shell script
+# Written by Renaud Allard
+set -x
+
+get_params() {
+	echo $* | sed 's/^.*(\(.*\));/\1/' | sed 's/[\",]/ /g'
+}
+
+set_perm_recursive() {
+	OWNER=$1
+	GROUP=$2
+	DIRPERM=$3
+	SUBPERM=$4
+	DIR=$5
+	chown -R ${OWNER}:${GROUP} ${DIR}
+	find $5 -type d | xargs chmod ${DIRPERM}
+	find ${DIR} -type f | xargs chmod ${SUBPERM}
+}
+
+set_perm() {
+	OWNER=$1
+	GROUP=$2
+	PERM=$3
+	FILE=$4
+	chown -R ${OWNER}:${GROUP} ${FILE}
+	chmod ${PERM} ${FILE}
+}
+
+package_extract_dir() {
+	SOURCE=$1
+	DEST=$2
+	cp -r /package_extract/${SOURCE}/* ${DEST}
+	cp -r /package_extract/${SOURCE}/.* ${DEST}
+}
+
+delete_recursive() {
+	DIR=$1
+	rm -rf ${DIR}/*
+	rm -rf ${DIR}/.*
+}
+
+symlink() {
+	SOURCE=$1
+	DEST=$2
+	DESTF=`echo ${DEST} | awk -F '/' '{print $NF}'`
+	DESTD=`echo ${DEST} | awk -F "/" '{$NF=""}1' OFS="/"`
+	cd ${DESTD}
+	ln -s ${SOURCE} ${DESTF}
+	cd /
+}
+	
+tr '\;' '\;\n' |
+while read LINE
+do
+	case $LINE in
+	ui_print*)
+	echo `get_params $LINE`
+	;;
+	mount*)
+	mount `get_params $LINE | sed 's|MTD||' | sed 's|system|/dev/block/stl9|' | sed 's|dbdata|/dev/block/stl10|' | sed 's|userdata|/dev/block/mmcblk0p2|' | sed 's|cache|/dev/block/stl11|'`
+	;;
+	run_program*)
+	eval `get_params $LINE | sed 's|SYSTEM:|/system|g' | sed 's|DATA:|/data/|' | sed 's|CACHE:|/cache/|' | sed 's|SDCARD:|/sdcard/|'`
+	;;
+	set_perm_recursive*)
+	set_perm_recursive `get_params $LINE`
+	;;
+	set_perm*)
+	set_perm `get_params $LINE`
+	;;
+	package_extract_dir*)
+	package_extract_dir `get_params $LINE`
+	;;
+	symlink*)
+	symlink `get_params $LINE`
+	;;
+	unmount*)
+	umount `get_params $LINE`
+	;;
+	delete_recursive*)
+	delete_recursive `get_params $LINE`
+	;;
+	delete*)
+	rm `get_params $LINE`
+	;;
+	format*)
+	delete_recursive `get_params $LINE | awk '{ print $(NF-1) }'`
+	;;
+	esac
+
+done
+
+
+

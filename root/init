@@ -108,18 +108,18 @@ fi
 for DEVICE in mmcblk0p2 stl10 stl11 stl9
 do
 	case `grep ${DEVICE} /fugumod_sd/fugumod/fs.current | awk '{ print $2 }'` in
-jfs)
+	jfs)
 	/sbin/jfs_fsck -p /dev/block/${DEVICE} >>/fugumod.log 2>>/fugumod.log
-;;
-ext*)
+	;;
+	ext*)
 	/sbin/e2fsck /dev/block/${DEVICE} >>/fugumod.log 2>>/fugumod.log
-;;
-reiserfs)
+	;;
+	reiserfs)
 	echo /sbin/reiserfsck /dev/block/${DEVICE} >>/fugumod.log 2>>/fugumod.log
-;;
-btrfs)
+	;;
+	btrfs)
 	/sbin/btrfsck /dev/block/${DEVICE} >>/fugumod.log 2>>/fugumod.log
-;;
+	;;
 	esac
 done
 
@@ -161,19 +161,19 @@ then
 		then
 			echo "$DEVICE is in $CUR_FS and needs to be converted to $NEW_FS" >> /fugumod.log
 			case ${NEW_FS} in
-jfs)
-MKFS='/sbin/jfs_mkfs -q '
-;;
-ext*)
-MKFS='/sbin/mke2fs -J size=4 -T ext4 -b 4096 -O ^resize_inode,^ext_attr,^huge_file '
-;;
-reiserfs)
-MKFS='/sbin/mkreiserfs -q -b 4096 -s 1000 '
-;;
-btrfs)
-MKFS='/sbin/mkfs.btrfs -d single '
-;;
-esac
+			jfs)
+			MKFS='/sbin/jfs_mkfs -q '
+			;;
+			ext*)
+			MKFS='/sbin/mke2fs -J size=4 -T ext4 -b 4096 -O ^resize_inode,^ext_attr,^huge_file '
+			;;
+			reiserfs)
+			MKFS='/sbin/mkreiserfs -q -b 4096 -s 1000 '
+			;;
+			btrfs)
+			MKFS='/sbin/mkfs.btrfs -d single '
+			;;
+			esac
 			mount -t ${CUR_FS} -o ro /dev/block/${DEVICE} /fugumod_data 2>>/fugumod.log
 			echo "`date` : archiving ${DEVICE} for conversion" >>/fugumod.log
 			mount |grep fugumod >>/fugumod.log
@@ -208,51 +208,51 @@ STL11_FS=`grep stl11 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }' | sed '
 MMC_FS=`grep mmcblk0p2 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }' | sed 's/ext2/ext4/'`
 
 case $STL9_FS in
-jfs)
+	jfs)
 	STL9_MNT=',iocharset=utf8'
-;;
-ext*)
+	;;
+	ext*)
 	STL9_MNT=',data=writeback,noauto_da_alloc,barrier=0'
-;;
-reiserfs)
+	;;
+	reiserfs)
 	STL9_MNT=',notail'
-;;
+	;;
 esac
 case $STL10_FS in
-jfs)
+	jfs)
 	STL10_MNT=',iocharset=utf8'
-;;
-ext*)
+	;;
+	ext*)
 	STL10_MNT=',nodelalloc,data=ordered,noauto_da_alloc,barrier=0'
-;;
-reiserfs)
+	;;
+	reiserfs)
 	STL10_MNT=',notail'
-;;
+	;;
 esac
 case $STL11_FS in
-jfs)
+	jfs)
 	STL11_MNT=',iocharset=utf8'
-;;
-ext*)
+	;;
+	ext*)
 	STL11_MNT=',data=writeback,noauto_da_alloc,barrier=0'
-;;
-reiserfs)
+	;;
+	reiserfs)
 	STL11_MNT=',notail'
-;;
+	;;
 esac
 case $MMC_FS in
-jfs)
+	jfs)
 	MMC_MNT=',iocharset=utf8'
-;;
-ext*)
+	;;
+	ext*)
 	MMC_MNT=',data=ordered,noauto_da_alloc,barrier=1'
-;;
-reiserfs)
+	;;
+	reiserfs)
 	MMC_MNT=',notail'
-;;
-btrfs)
+	;;
+	btrfs)
 	MMC_MNT=',nodatacow,compress,ssd'
-;;
+	;;
 esac
 	
 # Kill that stupid autoformatter
