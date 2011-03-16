@@ -30,8 +30,8 @@ set_perm() {
 package_extract_dir() {
 	SOURCE=$1
 	DEST=$2
-	cp -r /package_extract/${SOURCE}/* ${DEST}
-	cp -r /package_extract/${SOURCE}/.* ${DEST}
+	cp -r /fugumod_sd/fugumod/zip_unpack/${SOURCE}/* ${DEST}
+	cp -r /fugumod_sd/fugumod/zip_unpack/${SOURCE}/.* ${DEST}
 }
 
 delete_recursive() {
