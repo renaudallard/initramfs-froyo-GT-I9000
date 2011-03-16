@@ -184,7 +184,7 @@ fugu_mount_stl11
     chmod 0770 /cache/recovery
 
 #    mount rfs /dev/block/stl3 /efs rw relatime nosuid nodev check=no
-    symlink /data/efs /efs
+    symlink /dbdata/efs /efs
 
     #chown system system /efs
     chown radio radio /efs
