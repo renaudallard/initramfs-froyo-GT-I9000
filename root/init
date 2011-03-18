@@ -142,10 +142,13 @@ do
 	/sbin/e2fsck -p /dev/block/${DEVICE} >>/fugumod.log 2>>/fugumod.log
 	;;
 	reiserfs)
-	echo /sbin/reiserfsck /dev/block/${DEVICE} >>/fugumod.log 2>>/fugumod.log
+	echo "reiserfs, not checking" >>/fugumod.log 2>>/fugumod.log
 	;;
 	btrfs)
 	/sbin/btrfsck /dev/block/${DEVICE} >>/fugumod.log 2>>/fugumod.log
+	;;
+	nilfs2)
+	echo "nilfs2, not checking" >>/fugumod.log 2>>/fugumod.log
 	;;
 	esac
 done
@@ -200,6 +203,9 @@ then
 			btrfs)
 			MKFS='/sbin/mkfs.btrfs -d single '
 			;;
+			nilfs2)
+			MKFS='/sbin/mkfs.nilfs2 -b4096 -B128 -m2 '
+			;;
 			esac
 			mount -t ${CUR_FS} -o ro /dev/block/${DEVICE} /fugumod_data 2>>/fugumod.log
 			echo "`date` : archiving ${DEVICE} for conversion" >>/fugumod.log
@@ -244,6 +250,9 @@ case $STL9_FS in
 	reiserfs)
 	STL9_MNT=',notail'
 	;;
+	nilfs2)
+	STL9_MNT=''
+	;;
 esac
 case $STL10_FS in
 	jfs)
@@ -255,6 +264,9 @@ case $STL10_FS in
 	reiserfs)
 	STL10_MNT=',notail'
 	;;
+	nilfs2)
+	STL10_MNT=''
+	;;
 esac
 case $STL11_FS in
 	jfs)
@@ -265,6 +277,9 @@ case $STL11_FS in
 	;;
 	reiserfs)
 	STL11_MNT=',notail'
+	;;
+	nilfs2)
+	STL11_MNT=''
 	;;
 esac
 case $MMC_FS in
@@ -279,6 +294,9 @@ case $MMC_FS in
 	;;
 	btrfs)
 	MMC_MNT=',nodatacow,compress,ssd'
+	;;
+	nilfs2)
+	MMC_MNT=''
 	;;
 esac
 	
