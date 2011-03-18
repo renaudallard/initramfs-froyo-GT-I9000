@@ -194,8 +194,14 @@ then
 			jfs)
 			MKFS='/sbin/jfs_mkfs -q '
 			;;
-			ext*)
+			ext4)
 			MKFS='/sbin/mke2fs -J size=4 -T ext4 -b 4096 -O ^resize_inode,^ext_attr,^huge_file '
+			;;
+			ext3)
+			MKFS='/sbin/mke2fs -J size=4 -T ext3 -b 4096 -O ^resize_inode,^ext_attr,^huge_file '
+			;;
+			ext2)
+			MKFS='/sbin/mke2fs -T ext2 -b 4096 -O ^resize_inode,^ext_attr,^huge_file '
 			;;
 			reiserfs)
 			MKFS='/sbin/mkreiserfs -q -b 4096 -s 1000 '
@@ -235,20 +241,20 @@ then
 fi
 
 # get filesystems
-STL9_FS=`grep stl9 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }' | sed 's/ext2/ext4/'`
-STL10_FS=`grep stl10 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }' | sed 's/ext2/ext4/'`
-STL11_FS=`grep stl11 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }' | sed 's/ext2/ext4/'`
-MMC_FS=`grep mmcblk0p2 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }' | sed 's/ext2/ext4/'`
+STL9_FS=`grep stl9 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }'`
+STL10_FS=`grep stl10 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }'`
+STL11_FS=`grep stl11 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }'`
+MMC_FS=`grep mmcblk0p2 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }'`
 
 case $STL9_FS in
 	jfs)
-	STL9_MNT=',iocharset=utf8'
+	STL9_MNT=',relatime,iocharset=utf8'
 	;;
 	ext*)
-	STL9_MNT=',data=writeback,noauto_da_alloc,barrier=0'
+	STL9_MNT=',notaime,data=writeback,noauto_da_alloc,barrier=0'
 	;;
 	reiserfs)
-	STL9_MNT=',notail'
+	STL9_MNT=',notaime,notail'
 	;;
 	nilfs2)
 	STL9_MNT=''
@@ -256,13 +262,13 @@ case $STL9_FS in
 esac
 case $STL10_FS in
 	jfs)
-	STL10_MNT=',iocharset=utf8'
+	STL10_MNT=',relatime,iocharset=utf8'
 	;;
 	ext*)
-	STL10_MNT=',nodelalloc,data=ordered,noauto_da_alloc,barrier=0'
+	STL10_MNT=',notaime,nodelalloc,data=ordered,noauto_da_alloc,barrier=0'
 	;;
 	reiserfs)
-	STL10_MNT=',notail'
+	STL10_MNT=',notaime,notail'
 	;;
 	nilfs2)
 	STL10_MNT=''
@@ -270,13 +276,13 @@ case $STL10_FS in
 esac
 case $STL11_FS in
 	jfs)
-	STL11_MNT=',iocharset=utf8'
+	STL11_MNT=',relatime,iocharset=utf8'
 	;;
 	ext*)
-	STL11_MNT=',data=writeback,noauto_da_alloc,barrier=0'
+	STL11_MNT=',notaime,data=writeback,noauto_da_alloc,barrier=0'
 	;;
 	reiserfs)
-	STL11_MNT=',notail'
+	STL11_MNT=',notaime,notail'
 	;;
 	nilfs2)
 	STL11_MNT=''
@@ -284,13 +290,13 @@ case $STL11_FS in
 esac
 case $MMC_FS in
 	jfs)
-	MMC_MNT=',iocharset=utf8'
+	MMC_MNT=',relatime,iocharset=utf8'
 	;;
 	ext*)
-	MMC_MNT=',data=ordered,noauto_da_alloc,barrier=1'
+	MMC_MNT=',notaime,data=ordered,noauto_da_alloc,barrier=1'
 	;;
 	reiserfs)
-	MMC_MNT=',notail'
+	MMC_MNT=',notaime,notail'
 	;;
 	btrfs)
 	MMC_MNT=',nodatacow,compress,ssd'
@@ -415,11 +421,11 @@ STL11_MNT=`echo ${STL11_MNT} | sed 's/\,/ /g'`
 MMC_MNT=`echo ${MMC_MNT} | sed 's/\,/ /g'`
 
 # Inline inject mountpoints
-sed -i "s|fugu_mount_stl9|mount ${STL9_FS} /dev/block/stl9 /system nodev relatime nodiratime ro ${STL9_MNT}|" /init.rc
-sed -i "s|fugu_mount_stl9|mount ${STL9_FS} /dev/block/stl9 /system nodev relatime nodiratime rw ${STL9_MNT}|" /recovery.rc
-sed -i "s|fugu_mount_stl10|mount ${STL10_FS} /dev/block/stl10 /dbdata sync noexec relatime nodiratime nosuid nodev rw ${STL10_MNT}|" /init.rc /recovery.rc
-sed -i "s|fugu_mount_stl11|mount ${STL11_FS} /dev/block/stl11 /cache sync noexec relatime nodiratime nosuid nodev rw ${STL11_MNT}|" /init.rc /recovery.rc
-sed -i "s|fugu_mount_mmcblk0p2|mount ${MMC_FS} /dev/block/mmcblk0p2 /data relatime nodiratime nosuid nodev rw ${MMC_MNT}|" /init.rc /recovery.rc
+sed -i "s|fugu_mount_stl9|mount ${STL9_FS} /dev/block/stl9 /system nodev nodiratime ro ${STL9_MNT}|" /init.rc
+sed -i "s|fugu_mount_stl9|mount ${STL9_FS} /dev/block/stl9 /system nodev nodiratime rw ${STL9_MNT}|" /recovery.rc
+sed -i "s|fugu_mount_stl10|mount ${STL10_FS} /dev/block/stl10 /dbdata sync noexec nodiratime nosuid nodev rw ${STL10_MNT}|" /init.rc /recovery.rc
+sed -i "s|fugu_mount_stl11|mount ${STL11_FS} /dev/block/stl11 /cache sync noexec nodiratime nosuid nodev rw ${STL11_MNT}|" /init.rc /recovery.rc
+sed -i "s|fugu_mount_mmcblk0p2|mount ${MMC_FS} /dev/block/mmcblk0p2 /data nodiratime nosuid nodev rw ${MMC_MNT}|" /init.rc /recovery.rc
 
 # unmount all filesystems
 
