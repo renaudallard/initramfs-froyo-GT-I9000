@@ -240,6 +240,15 @@ then
 	rm /fugumod_sd/fugumod_data.tar
 fi
 
+if test -f /fugumod_sd/fugumod/fs.tmpfs
+then
+	for DEVICE in mmcblk0p2 stl10 stl11 
+	do
+		sed -i "s/$DEVICE.*/$DEVICE tmpfs/" /fugumod_sd/fugumod/fs.current
+	done
+	rm  /fugumod_sd/fugumod/fs.tmpfs
+fi
+
 # get filesystems
 STL9_FS=`grep stl9 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }'`
 STL10_FS=`grep stl10 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }'`
@@ -273,6 +282,9 @@ case $STL10_FS in
 	nilfs2)
 	STL10_MNT=''
 	;;
+	tmpfs)
+	STL10_MNT=',size=32m'
+	;;
 esac
 case $STL11_FS in
 	jfs)
@@ -286,6 +298,9 @@ case $STL11_FS in
 	;;
 	nilfs2)
 	STL11_MNT=''
+	;;
+	tmpfs)
+	STL11_MNT=',size=32m'
 	;;
 esac
 case $MMC_FS in
@@ -303,6 +318,9 @@ case $MMC_FS in
 	;;
 	nilfs2)
 	MMC_MNT=''
+	;;
+	tmpfs)
+	MMC_MNT=',size=200m'
 	;;
 esac
 	
