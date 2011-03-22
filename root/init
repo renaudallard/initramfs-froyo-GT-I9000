@@ -221,7 +221,12 @@ then
 			MKFS='/sbin/mkfs.rfs '
 			;;
 			esac
-			mount -t ${CUR_FS} -o ro /dev/block/${DEVICE} /fugumod_data 2>>/fugumod.log
+			if [ "${CUR_FS}" == "rfs" ]
+			then
+				mount -t ${CUR_FS} -o ro,check=no /dev/block/${DEVICE} /fugumod_data 2>>/fugumod.log
+			else
+				mount -t ${CUR_FS} -o ro /dev/block/${DEVICE} /fugumod_data 2>>/fugumod.log
+			fi
 			echo "`date` : archiving ${DEVICE} for conversion" >>/fugumod.log
 			mount |grep fugumod >>/fugumod.log
 			cd /fugumod_data/
