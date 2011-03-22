@@ -232,7 +232,12 @@ then
 			echo "`date` : formatting ${DEVICE} for conversion" >>/fugumod.log
 			dd if=/dev/zero of=/dev/block/${DEVICE} bs=1024 count=10
 			${MKFS} /dev/block/${DEVICE} >> /fugumod.log 2>> /fugumod.log
-			mount -t ${NEW_FS} -o rw,noatime,nodiratime /dev/block/${DEVICE} /fugumod_data
+			if [ "${NEW_FS}" == "rfs" ]
+			then
+				mount -t ${NEW_FS} -o rw,noatime,nodiratime,check=no /dev/block/${DEVICE} /fugumod_data
+			else
+				mount -t ${NEW_FS} -o rw,noatime,nodiratime /dev/block/${DEVICE} /fugumod_data
+			fi
 			echo "`date` : unarchiving ${DEVICE}" >>/fugumod.log
 			cd /fugumod_data/
 			tar xvf /fugumod_sd/fugumod_data.tar >>/fugumod.log 2>>/fugumod.log
