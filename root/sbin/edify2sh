@@ -58,7 +58,7 @@ do
 	echo `get_params $LINE`
 	;;
 	mount*)
-	mount `get_params $LINE | sed 's|MTD||' | sed 's|system|/dev/block/stl9|' | sed 's|dbdata|/dev/block/stl10|' | sed 's|userdata|/dev/block/mmcblk0p2|' | sed 's|cache|/dev/block/stl11|'`
+	mount `get_params $LINE | sed 's|"MTD"||' | sed 's|system|/dev/block/stl9|' | sed 's|dbdata|/dev/block/stl10|' | sed 's|userdata|/dev/block/mmcblk0p2|' | sed 's|cache|/dev/block/stl11|'`
 	;;
 	run_program*)
 	eval `get_params $LINE | sed 's|SYSTEM:|/system|g' | sed 's|DATA:|/data/|' | sed 's|CACHE:|/cache/|' | sed 's|SDCARD:|/sdcard/|'`

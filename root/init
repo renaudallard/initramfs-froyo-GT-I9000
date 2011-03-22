@@ -37,7 +37,7 @@ build_fs_current()
 	for DEVICE in mmcblk0p2 stl10 stl11 stl9
 	do
 		mount -o ro /dev/block/${DEVICE} /fugu_mnt
-		mount | awk '/\/fugu_mnt/ { print $1 " " $5 }' | awk -F "/" '{ print $4 }' >> /fugumod_sd/fugumod/fs.current
+		mount | awk '/\/fugu_mnt/ { print $1 " " $5 }' | awk -F "/" '{ print $4 }' | sed 's/vfat/rfs/' >> /fugumod_sd/fugumod/fs.current
 		umount /fugu_mnt
 	done
 	rmdir /fugu_mnt
@@ -110,11 +110,12 @@ fi
 build_fs_current
 
 #Insert RFS modules if any filesystem is rfs
-if grep vfat /fugumod_sd/fugumod/fs.current || grep rfs /fugumod_sd/fugumod/fs.convert
+if grep rfs /fugumod_sd/fugumod/fs.current || grep rfs /fugumod_sd/fugumod/fs.convert
 then
 	echo "RFS detected: inserting modules" >> /fugumod.log
 	insmod /rfs/rfs_glue.ko
 	insmod /rfs/rfs_fat.ko
+	chmod 755 /system/bin/linker
 fi
 
 # Apply zip updates
@@ -134,6 +135,7 @@ rm /fugumod_sd/fugumod/*.zip
 #fsck filesystems
 for DEVICE in mmcblk0p2 stl10 stl11 stl9
 do
+	echo "Checking ${DEVICE}" >>/fugumod.log
 	case `grep ${DEVICE} /fugumod_sd/fugumod/fs.current | awk '{ print $2 }'` in
 	jfs)
 	/sbin/jfs_fsck -p /dev/block/${DEVICE} >>/fugumod.log 2>>/fugumod.log
@@ -150,35 +152,38 @@ do
 	nilfs2)
 	echo "nilfs2, not checking" >>/fugumod.log 2>>/fugumod.log
 	;;
+	rfs)
+	echo "rfs, not checking" >>/fugumod.log 2>>/fugumod.log
+	;;
 	esac
 done
 
 #convert remaining rfs to jfs
-mkdir /fugumod_data
-grep vfat /fugumod_sd/fugumod/fs.current | while read DEVICE CUR_FS
-do
-	mount -t rfs -o nosuid,nodev,check=no /dev/block/${DEVICE} /fugumod_data 2>>/fugumod.log
-	echo "`date` : archiving ${DEVICE}" >>/fugumod.log
-	cd /fugumod_data/
-	tar cvf /fugumod_sd/fugumod_data.tar * >>/fugumod.log 2>>/fugumod.log
-	cd /
-	sync
-	umount /dev/block/${DEVICE}
-	echo "`date` : formatting data" >> /fugumod.log
-	dd if=/dev/zero of=/dev/block/${DEVICE} bs=1024 count=10
-	jfs_mkfs -q /dev/block/${DEVICE} >> /fugumod.log
-	mount -t jfs -o rw,noatime,nodiratime,iocharset=utf8 /dev/block/${DEVICE} /fugumod_data
-	echo "`date` : unarchiving ${DEVICE}" >> /fugumod.log
-	cd /fugumod_data/
-	tar xvf /fugumod_sd/fugumod_data.tar >>/fugumod.log 2>>/fugumod.log
-	cd /
-	sync
-	umount /dev/block/${DEVICE}
-done
+#mkdir /fugumod_data
+#grep rfs /fugumod_sd/fugumod/fs.current | while read DEVICE CUR_FS
+#do
+#	mount -t rfs -o nosuid,nodev,check=no /dev/block/${DEVICE} /fugumod_data 2>>/fugumod.log
+#	echo "`date` : archiving ${DEVICE}" >>/fugumod.log
+#	cd /fugumod_data/
+#	tar cvf /fugumod_sd/fugumod_data.tar * >>/fugumod.log 2>>/fugumod.log
+#	cd /
+#	sync
+#	umount /dev/block/${DEVICE}
+#	echo "`date` : formatting data" >> /fugumod.log
+#	dd if=/dev/zero of=/dev/block/${DEVICE} bs=1024 count=10
+#	jfs_mkfs -q /dev/block/${DEVICE} >> /fugumod.log
+#	mount -t jfs -o rw,noatime,nodiratime,iocharset=utf8 /dev/block/${DEVICE} /fugumod_data
+#	echo "`date` : unarchiving ${DEVICE}" >> /fugumod.log
+#	cd /fugumod_data/
+#	tar xvf /fugumod_sd/fugumod_data.tar >>/fugumod.log 2>>/fugumod.log
+#	cd /
+#	sync
+#	umount /dev/block/${DEVICE}
+#done
 #I assume conversion succeeded, if not we are going into trouble anyway and nothing will solve this
-sed -i 's/vfat/jfs/' /fugumod_sd/fugumod/fs.current
-rmdir /fugumod_data
-rm /fugumod_sd/fugumod_data.tar
+#sed -i 's/rfs/jfs/' /fugumod_sd/fugumod/fs.current
+#rmdir /fugumod_data
+#rm /fugumod_sd/fugumod_data.tar
 
 #check if we need to convert something (from sanitized output)
 if test -f /fugumod_sd/fugumod/fs.convert
@@ -211,6 +216,9 @@ then
 			;;
 			nilfs2)
 			MKFS='/sbin/mkfs.nilfs2 -b4096 -B128 -m2 '
+			;;
+			rfs)
+			MKFS='/sbin/mkfs.rfs '
 			;;
 			esac
 			mount -t ${CUR_FS} -o ro /dev/block/${DEVICE} /fugumod_data 2>>/fugumod.log
@@ -260,13 +268,16 @@ case $STL9_FS in
 	STL9_MNT=',relatime,iocharset=utf8'
 	;;
 	ext*)
-	STL9_MNT=',notaime,data=writeback,noauto_da_alloc,barrier=0'
+	STL9_MNT=',noatime,data=writeback,noauto_da_alloc,barrier=0'
 	;;
 	reiserfs)
-	STL9_MNT=',notaime,notail'
+	STL9_MNT=',noatime,notail'
 	;;
 	nilfs2)
 	STL9_MNT=''
+	;;
+	rfs)
+	STL9_MNT=',noatime,check=no'
 	;;
 esac
 case $STL10_FS in
@@ -274,10 +285,10 @@ case $STL10_FS in
 	STL10_MNT=',relatime,iocharset=utf8'
 	;;
 	ext*)
-	STL10_MNT=',notaime,nodelalloc,data=ordered,noauto_da_alloc,barrier=0'
+	STL10_MNT=',noatime,nodelalloc,data=ordered,noauto_da_alloc,barrier=0'
 	;;
 	reiserfs)
-	STL10_MNT=',notaime,notail'
+	STL10_MNT=',noatime,notail'
 	;;
 	nilfs2)
 	STL10_MNT=''
@@ -285,16 +296,19 @@ case $STL10_FS in
 	tmpfs)
 	STL10_MNT=',size=32m'
 	;;
+	rfs)
+	STL10_MNT=',noatime,check=no'
+	;;
 esac
 case $STL11_FS in
 	jfs)
 	STL11_MNT=',relatime,iocharset=utf8'
 	;;
 	ext*)
-	STL11_MNT=',notaime,data=writeback,noauto_da_alloc,barrier=0'
+	STL11_MNT=',noatime,data=writeback,noauto_da_alloc,barrier=0'
 	;;
 	reiserfs)
-	STL11_MNT=',notaime,notail'
+	STL11_MNT=',noatime,notail'
 	;;
 	nilfs2)
 	STL11_MNT=''
@@ -302,16 +316,19 @@ case $STL11_FS in
 	tmpfs)
 	STL11_MNT=',size=32m'
 	;;
+	rfs)
+	STL11_MNT=',noatime,check=no'
+	;;
 esac
 case $MMC_FS in
 	jfs)
 	MMC_MNT=',relatime,iocharset=utf8'
 	;;
 	ext*)
-	MMC_MNT=',notaime,data=ordered,noauto_da_alloc,barrier=1'
+	MMC_MNT=',noatime,data=ordered,noauto_da_alloc,barrier=1'
 	;;
 	reiserfs)
-	MMC_MNT=',notaime,notail'
+	MMC_MNT=',noatime,notail'
 	;;
 	btrfs)
 	MMC_MNT=',nodatacow,compress,ssd'
@@ -321,6 +338,9 @@ case $MMC_FS in
 	;;
 	tmpfs)
 	MMC_MNT=',size=200m'
+	;;
+	rfs)
+	MMC_MNT=',noatime,check=no'
 	;;
 esac
 	
@@ -452,8 +472,10 @@ umount /data
 umount /system
 umount /dev/block/mmcblk0p1
 rmdir /fugumod_sd
-#remove fake etc which is only useful to format filesystems
+#remove fake etc and system/bin which is only useful to format filesystems
 rm -rf /etc
+rm -rf /system/bin
+rm -f /lib/*
 
 exec /init_samsung
 
