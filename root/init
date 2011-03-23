@@ -46,12 +46,6 @@ build_fs_current()
 
 set_mount_options()
 {
-# get filesystems
-STL9_FS=`grep stl9 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }'`
-STL10_FS=`grep stl10 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }'`
-STL11_FS=`grep stl11 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }'`
-MMC_FS=`grep mmcblk0p2 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }'`
-
 case $STL9_FS in
 	jfs)
 	STL9_MNT=',relatime,iocharset=utf8'
@@ -330,6 +324,12 @@ then
 	done
 	rm  /fugumod_sd/fugumod/fs.tmpfs
 fi
+
+# get filesystems
+STL9_FS=`grep stl9 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }'`
+STL10_FS=`grep stl10 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }'`
+STL11_FS=`grep stl11 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }'`
+MMC_FS=`grep mmcblk0p2 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }'`
 
 if test -f /fugumod_sd/fugumod/fs.options
 then
