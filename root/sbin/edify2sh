@@ -30,7 +30,7 @@ set_perm() {
 package_extract_dir() {
 	SOURCE=$1
 	DEST=$2
-	(cd ${SOURCE}; tar -cvf - .)| (cd ${DEST}; tar xvf -)
+	(cd /fugumod_sd/fugumod/zip_unpack/${SOURCE}; tar -cvf - .)| (cd ${DEST}; tar xvf -)
 }
 
 delete_recursive() {
