@@ -43,6 +43,97 @@ build_fs_current()
 	rmdir /fugu_mnt
 }
 
+
+set_mount_options()
+{
+# get filesystems
+STL9_FS=`grep stl9 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }'`
+STL10_FS=`grep stl10 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }'`
+STL11_FS=`grep stl11 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }'`
+MMC_FS=`grep mmcblk0p2 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }'`
+
+case $STL9_FS in
+	jfs)
+	STL9_MNT=',relatime,iocharset=utf8'
+	;;
+	ext*)
+	STL9_MNT=',noatime,data=writeback,noauto_da_alloc,barrier=0'
+	;;
+	reiserfs)
+	STL9_MNT=',noatime,notail'
+	;;
+	nilfs2)
+	STL9_MNT=''
+	;;
+	rfs)
+	STL9_MNT=',noatime,check=no'
+	;;
+esac
+case $STL10_FS in
+	jfs)
+	STL10_MNT=',relatime,iocharset=utf8'
+	;;
+	ext*)
+	STL10_MNT=',noatime,nodelalloc,data=ordered,noauto_da_alloc,barrier=0'
+	;;
+	reiserfs)
+	STL10_MNT=',noatime,notail'
+	;;
+	nilfs2)
+	STL10_MNT=''
+	;;
+	tmpfs)
+	STL10_MNT=',size=32m'
+	;;
+	rfs)
+	STL10_MNT=',noatime,check=no'
+	;;
+esac
+case $STL11_FS in
+	jfs)
+	STL11_MNT=',relatime,iocharset=utf8'
+	;;
+	ext*)
+	STL11_MNT=',noatime,data=writeback,noauto_da_alloc,barrier=0'
+	;;
+	reiserfs)
+	STL11_MNT=',noatime,notail'
+	;;
+	nilfs2)
+	STL11_MNT=''
+	;;
+	tmpfs)
+	STL11_MNT=',size=32m'
+	;;
+	rfs)
+	STL11_MNT=',noatime,check=no'
+	;;
+esac
+case $MMC_FS in
+	jfs)
+	MMC_MNT=',relatime,iocharset=utf8'
+	;;
+	ext*)
+	MMC_MNT=',noatime,data=ordered,noauto_da_alloc,barrier=1'
+	;;
+	reiserfs)
+	MMC_MNT=',noatime,notail'
+	;;
+	btrfs)
+	MMC_MNT=',nodatacow,compress,ssd'
+	;;
+	nilfs2)
+	MMC_MNT=''
+	;;
+	tmpfs)
+	MMC_MNT=',size=200m'
+	;;
+	rfs)
+	MMC_MNT=',noatime,check=no'
+	;;
+esac
+}
+
 date >/fugumod.log
 echo "Version:$VERSION" >>/fugumod.log
 uname -a >>/fugumod.log
@@ -240,92 +331,15 @@ then
 	rm  /fugumod_sd/fugumod/fs.tmpfs
 fi
 
-# get filesystems
-STL9_FS=`grep stl9 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }'`
-STL10_FS=`grep stl10 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }'`
-STL11_FS=`grep stl11 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }'`
-MMC_FS=`grep mmcblk0p2 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }'`
-
-case $STL9_FS in
-	jfs)
-	STL9_MNT=',relatime,iocharset=utf8'
-	;;
-	ext*)
-	STL9_MNT=',noatime,data=writeback,noauto_da_alloc,barrier=0'
-	;;
-	reiserfs)
-	STL9_MNT=',noatime,notail'
-	;;
-	nilfs2)
-	STL9_MNT=''
-	;;
-	rfs)
-	STL9_MNT=',noatime,check=no'
-	;;
-esac
-case $STL10_FS in
-	jfs)
-	STL10_MNT=',relatime,iocharset=utf8'
-	;;
-	ext*)
-	STL10_MNT=',noatime,nodelalloc,data=ordered,noauto_da_alloc,barrier=0'
-	;;
-	reiserfs)
-	STL10_MNT=',noatime,notail'
-	;;
-	nilfs2)
-	STL10_MNT=''
-	;;
-	tmpfs)
-	STL10_MNT=',size=32m'
-	;;
-	rfs)
-	STL10_MNT=',noatime,check=no'
-	;;
-esac
-case $STL11_FS in
-	jfs)
-	STL11_MNT=',relatime,iocharset=utf8'
-	;;
-	ext*)
-	STL11_MNT=',noatime,data=writeback,noauto_da_alloc,barrier=0'
-	;;
-	reiserfs)
-	STL11_MNT=',noatime,notail'
-	;;
-	nilfs2)
-	STL11_MNT=''
-	;;
-	tmpfs)
-	STL11_MNT=',size=32m'
-	;;
-	rfs)
-	STL11_MNT=',noatime,check=no'
-	;;
-esac
-case $MMC_FS in
-	jfs)
-	MMC_MNT=',relatime,iocharset=utf8'
-	;;
-	ext*)
-	MMC_MNT=',noatime,data=ordered,noauto_da_alloc,barrier=1'
-	;;
-	reiserfs)
-	MMC_MNT=',noatime,notail'
-	;;
-	btrfs)
-	MMC_MNT=',nodatacow,compress,ssd'
-	;;
-	nilfs2)
-	MMC_MNT=''
-	;;
-	tmpfs)
-	MMC_MNT=',size=200m'
-	;;
-	rfs)
-	MMC_MNT=',noatime,check=no'
-	;;
-esac
+if test -f /fugumod_sd/fugumod/fs.options
+then
+	STL9_MNT=",`grep stl9 /fugumod_sd/fugumod/fs.options | awk '{ print $2 }'`"
+	STL10_MNT=",`grep stl10 /fugumod_sd/fugumod/fs.options | awk '{ print $2 }'`"
+	STL11_MNT=",`grep stl11 /fugumod_sd/fugumod/fs.options | awk '{ print $2 }'`"
+	MMC_MNT=",`grep mmcblk0p2 /fugumod_sd/fugumod/fs.options | awk '{ print $2 }'`"
+else
+	set_mount_options
+fi
 	
 # Kill that stupid autoformatter
 mount -t ${STL9_FS} -o rw${STL9_MNT} /dev/block/stl9 /system
