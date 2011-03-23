@@ -30,7 +30,6 @@ set_perm() {
 package_extract_dir() {
 	SOURCE=$1
 	DEST=$2
-	(cd
 	(cd ${SOURCE}; tar -cvf - .)| (cd ${DEST}; tar xvf -)
 }
 
