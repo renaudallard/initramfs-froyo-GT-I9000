@@ -127,10 +127,10 @@ do
 	unzip "${UPDATE}" -d /fugumod_sd/fugumod/zip_unpack >>/fugumod.log 2>>/fugumod.log
 	cat /fugumod_sd/fugumod/zip_unpack/META-INF/com/google/android/updater-script | /sbin/edify2sh >>/fugumod.log 2>>/fugumod.log
 	rm -rf /fugumod_sd/fugumod/zip_unpack /tmp
+	sync
 done
-sync
-umount /sdcard /cache /system /dbdata /data
 rm /fugumod_sd/fugumod/*.zip
+umount /sdcard /cache /system /dbdata /data
 
 #fsck filesystems
 for DEVICE in mmcblk0p2 stl10 stl11 stl9
@@ -157,33 +157,6 @@ do
 	;;
 	esac
 done
-
-#convert remaining rfs to jfs
-#mkdir /fugumod_data
-#grep rfs /fugumod_sd/fugumod/fs.current | while read DEVICE CUR_FS
-#do
-#	mount -t rfs -o nosuid,nodev,check=no /dev/block/${DEVICE} /fugumod_data 2>>/fugumod.log
-#	echo "`date` : archiving ${DEVICE}" >>/fugumod.log
-#	cd /fugumod_data/
-#	tar cvf /fugumod_sd/fugumod_data.tar * >>/fugumod.log 2>>/fugumod.log
-#	cd /
-#	sync
-#	umount /dev/block/${DEVICE}
-#	echo "`date` : formatting data" >> /fugumod.log
-#	dd if=/dev/zero of=/dev/block/${DEVICE} bs=1024 count=10
-#	jfs_mkfs -q /dev/block/${DEVICE} >> /fugumod.log
-#	mount -t jfs -o rw,noatime,nodiratime,iocharset=utf8 /dev/block/${DEVICE} /fugumod_data
-#	echo "`date` : unarchiving ${DEVICE}" >> /fugumod.log
-#	cd /fugumod_data/
-#	tar xvf /fugumod_sd/fugumod_data.tar >>/fugumod.log 2>>/fugumod.log
-#	cd /
-#	sync
-#	umount /dev/block/${DEVICE}
-#done
-#I assume conversion succeeded, if not we are going into trouble anyway and nothing will solve this
-#sed -i 's/rfs/jfs/' /fugumod_sd/fugumod/fs.current
-#rmdir /fugumod_data
-#rm /fugumod_sd/fugumod_data.tar
 
 #check if we need to convert something (from sanitized output)
 if test -f /fugumod_sd/fugumod/fs.convert
