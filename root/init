@@ -239,7 +239,7 @@ done
 
 # Apply zip updates
 # mount filesystems as some update scripts don't mount them
-if ls /fugumod_sd/fugumod/*.zip >/dev/null 2>/dev/null
+if ls /fugumod_sd/fugumod/*.zip >>/fugumod.log 2>>/fugumod.log
 then
 	get_filesystems
 	set_mount_options
@@ -247,7 +247,7 @@ then
 	mount -t ${STL10_FS} -o rw${STL10_MNT} /dev/block/stl10 /dbdata	
 fi
 # Apply zip now
-ls /fugumod_sd/fugumod/*.zip >/dev/null 2>/dev/null | while read UPDATE
+ls /fugumod_sd/fugumod/*.zip | while read UPDATE
 do
 	mkdir -p /tmp
 	echo "Applying update ${UPDATE}" >>/fugumod.log
