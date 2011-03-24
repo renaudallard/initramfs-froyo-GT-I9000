@@ -52,6 +52,7 @@ symlink() {
 sed -e 's/;/;\n/g' |
 while read LINE
 do
+	echo $LINE
 	case $LINE in
 	ui_print*)
 	echo `get_params $LINE`

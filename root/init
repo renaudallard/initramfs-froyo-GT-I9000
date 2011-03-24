@@ -128,6 +128,13 @@ case $MMC_FS in
 esac
 }
 
+get_filesystems() {
+	STL9_FS=`grep stl9 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }'`
+	STL10_FS=`grep stl10 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }'`
+	STL11_FS=`grep stl11 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }'`
+	MMC_FS=`grep mmcblk0p2 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }'`
+}
+
 date >/fugumod.log
 echo "Version:$VERSION" >>/fugumod.log
 uname -a >>/fugumod.log
@@ -203,19 +210,6 @@ then
 	chmod 755 /system/bin/linker
 fi
 
-# Apply zip updates
-ls /fugumod_sd/fugumod/*.zip | while read UPDATE
-do
-	mkdir -p /tmp
-	echo "Applying update ${UPDATE}" >>/fugumod.log
-	mkdir -p /fugumod_sd/fugumod/zip_unpack
-	unzip "${UPDATE}" -d /fugumod_sd/fugumod/zip_unpack >>/fugumod.log 2>>/fugumod.log
-	cat /fugumod_sd/fugumod/zip_unpack/META-INF/com/google/android/updater-script | /sbin/edify2sh >>/fugumod.log 2>>/fugumod.log
-	rm -rf /fugumod_sd/fugumod/zip_unpack /tmp
-	sync
-done
-rm /fugumod_sd/fugumod/*.zip
-umount /sdcard /cache /system /dbdata /data
 
 #fsck filesystems
 for DEVICE in mmcblk0p2 stl10 stl11 stl9
@@ -242,6 +236,29 @@ do
 	;;
 	esac
 done
+
+# Apply zip updates
+# mount filesystems as some update scripts don't mount them
+if ls /fugumod_sd/fugumod/*.zip >/dev/null 2>/dev/null
+then
+	get_filesystems
+	set_mount_options
+	mount -t ${MMC_FS} -o rw${MMC_MNT} /dev/block/mmcblk0p2 /data	
+	mount -t ${STL10_FS} -o rw${STL10_MNT} /dev/block/stl10 /dbdata	
+fi
+# Apply zip now
+ls /fugumod_sd/fugumod/*.zip >/dev/null 2>/dev/null | while read UPDATE
+do
+	mkdir -p /tmp
+	echo "Applying update ${UPDATE}" >>/fugumod.log
+	mkdir -p /fugumod_sd/fugumod/zip_unpack
+	unzip "${UPDATE}" -d /fugumod_sd/fugumod/zip_unpack >>/fugumod.log 2>>/fugumod.log
+	cat /fugumod_sd/fugumod/zip_unpack/META-INF/com/google/android/updater-script | /sbin/edify2sh >>/fugumod.log 2>>/fugumod.log
+	rm -rf /fugumod_sd/fugumod/zip_unpack /tmp
+	sync
+done
+rm /fugumod_sd/fugumod/*.zip
+umount /sdcard /cache /system /dbdata /data
 
 #check if we need to convert something (from sanitized output)
 if test -f /fugumod_sd/fugumod/fs.convert
@@ -326,10 +343,7 @@ then
 fi
 
 # get filesystems
-STL9_FS=`grep stl9 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }'`
-STL10_FS=`grep stl10 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }'`
-STL11_FS=`grep stl11 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }'`
-MMC_FS=`grep mmcblk0p2 /fugumod_sd/fugumod/fs.current | awk '{ print $2 }'`
+get_filesystems
 
 if test -f /fugumod_sd/fugumod/fs.options
 then
