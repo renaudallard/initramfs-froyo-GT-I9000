@@ -188,7 +188,7 @@ mount -t sysfs sys /sys
 insmod /lib/modules/fsr.ko
 insmod /lib/modules/fsr_stl.ko
 
-mkdir /fugumod_sd
+mkdir -p /fugumod_sd
 mount -t vfat -o utf8 /dev/block/mmcblk0p1 /fugumod_sd
 
 #Check if conf directory exists, if not create one
@@ -241,10 +241,15 @@ done
 # mount filesystems as some update scripts don't mount them
 if ls /fugumod_sd/fugumod/*.zip >>/fugumod.log 2>>/fugumod.log
 then
+	mkdir -p /dbdata
+	mkdir -p /data
 	get_filesystems
 	set_mount_options
-	mount -t ${MMC_FS} -o rw${MMC_MNT} /dev/block/mmcblk0p2 /data	
-	mount -t ${STL10_FS} -o rw${STL10_MNT} /dev/block/stl10 /dbdata	
+	mount -t ${MMC_FS} -o rw${MMC_MNT} /dev/block/mmcblk0p2 /data >>/fugumod.log 2>>/fugumod.log
+	mount -t ${STL10_FS} -o rw${STL10_MNT} /dev/block/stl10 /dbdata	>>/fugumod.log 2>>/fugumod.log
+	mount -t ${STL9_FS} -o rw${STL9_MNT} /dev/block/stl9 /system >>/fugumod.log 2>>/fugumod.log
+	mount -t ${STL11_FS} -o rw${STL11_MNT} /dev/block/stl11 /cache >>/fugumod.log 2>>/fugumod.log
+	mount >>/fugumod.log
 fi
 # Apply zip now
 ls /fugumod_sd/fugumod/*.zip | while read UPDATE
@@ -253,7 +258,8 @@ do
 	echo "Applying update ${UPDATE}" >>/fugumod.log
 	mkdir -p /fugumod_sd/fugumod/zip_unpack
 	unzip "${UPDATE}" -d /fugumod_sd/fugumod/zip_unpack >>/fugumod.log 2>>/fugumod.log
-	cat /fugumod_sd/fugumod/zip_unpack/META-INF/com/google/android/updater-script | /sbin/edify2sh >>/fugumod.log 2>>/fugumod.log
+	/fugumod_sd/fugumod/zip_unpack/META-INF/com/google/android/update-binary 2 1 "${UPDATE}" >>/fugumod.log 2>>/fugumod.log
+#	cat /fugumod_sd/fugumod/zip_unpack/META-INF/com/google/android/updater-script | /sbin/edify2sh >>/fugumod.log 2>>/fugumod.log
 	rm -rf /fugumod_sd/fugumod/zip_unpack /tmp
 	sync
 done
