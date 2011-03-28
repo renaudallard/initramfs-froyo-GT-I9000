@@ -198,7 +198,7 @@ then
 		ro.debuggable=1
 		persist.service.adb.enable=1' > /default.prop
 else
-	echo '  ro.secure=0
+	echo '  ro.secure=1
 		ro.allow.mock.location=0
 		ro.debuggable=0
 		persist.service.adb.enable=0' > /default.prop
