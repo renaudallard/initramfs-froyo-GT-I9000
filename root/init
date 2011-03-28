@@ -191,6 +191,19 @@ insmod /lib/modules/fsr_stl.ko
 mkdir -p /fugumod_sd
 mount -t vfat -o utf8 /dev/block/mmcblk0p1 /fugumod_sd
 
+if test -f /fugumod_sd/fugumod/debug
+then
+	echo '  ro.secure=0
+		ro.allow.mock.location=0
+		ro.debuggable=1
+		persist.service.adb.enable=1' > /default.prop
+else
+	echo '  ro.secure=0
+		ro.allow.mock.location=0
+		ro.debuggable=0
+		persist.service.adb.enable=0' > /default.prop
+fi
+
 #Check if conf directory exists, if not create one
 if ! test -d /fugumod_sd/fugumod
 then
