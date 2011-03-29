@@ -204,6 +204,11 @@ else
 		persist.service.adb.enable=0' > /default.prop
 fi
 
+if test -f /fugumod_sd/fugumod/nobln
+then
+	echo 0 > /sys/devices/virtual/misc/backlightnotification/enabled
+fi
+
 #Check if conf directory exists, if not create one
 if ! test -d /fugumod_sd/fugumod
 then
