@@ -191,6 +191,7 @@ insmod /lib/modules/fsr_stl.ko
 mkdir -p /fugumod_sd
 mount -t vfat -o utf8 /dev/block/mmcblk0p1 /fugumod_sd
 
+# check for debug
 if test -f /fugumod_sd/fugumod/debug
 then
 	echo '  ro.secure=0
@@ -204,9 +205,17 @@ else
 		persist.service.adb.enable=0' > /default.prop
 fi
 
+# check for bln
 if test -f /fugumod_sd/fugumod/nobln
 then
 	echo 0 > /sys/devices/virtual/misc/backlightnotification/enabled
+fi
+
+# check for compcache
+if ! test -f /fugumod_sd/fugumod/nocompcache
+then
+	/sbin/rzscontrol /dev/ramzswap0 --init
+	/sbin/swapon /dev/ramzswap0
 fi
 
 #Check if conf directory exists, if not create one
@@ -482,10 +491,6 @@ fi
 
 # remove temporary stuff to free memory
 rm /res/misc/Superuser.apk
-
-# enable ramzswap
-/sbin/rzscontrol /dev/ramzswap0 --init
-/sbin/swapon /dev/ramzswap0
 
 # modify mount options to inject in android inits
 STL9_MNT=`echo ${STL9_MNT} | sed 's/\,/ /g'`
