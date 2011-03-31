@@ -229,7 +229,7 @@ fi
 build_fs_current
 
 #Insert RFS modules if any filesystem is rfs
-if grep rfs /fugumod_sd/fugumod/fs.current || grep rfs /fugumod_sd/fugumod/fs.convert
+if grep rfs /fugumod_sd/fugumod/fs.current | grep -v reiser || grep rfs /fugumod_sd/fugumod/fs.convert 2>/dev/null | grep -v reiser
 then
 	echo "RFS detected: inserting modules" >> /fugumod.log
 	insmod /rfs/rfs_glue.ko
