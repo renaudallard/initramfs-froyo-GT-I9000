@@ -428,15 +428,11 @@ then
 
 # FuguApp
     rm /system/app/fuguapp.apk
-#    rm /data/app/fuguapp.apk
-#    cp /res/misc/fuguapp.apk /system/app/
 
 # Change GPS settings
     sed -i 's/north-america/europe/' /system/etc/gps.conf
 
 # Remove noisy startup/shutdown sounds
-#    mv /system/etc/PowerOn.wav /system/etc/PowerOn.wav.disabled
-#    mv /system/media/audio/ui/shutdown.ogg /system/media/audio/ui/shutdown.ogg.disabled
     rm /system/etc/PowerOn.wav /system/media/audio/ui/shutdown.ogg /system/media/audio/ui/TW_Battery_caution.ogg 
 
 # install backlight lib
@@ -446,9 +442,6 @@ then
     cp -r /system/media/audio/notifications /fugumod_sd/
     cp -r /system/media/audio/ringtones /fugumod_sd/
     cp -r /system/media/audio/alarms /fugumod_sd/
-
-# clear Dalvik cache as it can cause issues when upgrading
-#   rm -rf /data/dalvik-cache/* && echo "Dalvik cache cleared" >> /fugumod.log
 
 # remove some useless Kies processes
     rm /system/bin/drexe /system/bin/npsmobex
