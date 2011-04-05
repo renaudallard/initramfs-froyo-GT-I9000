@@ -178,6 +178,7 @@ mknod /dev/block/bml9 b 137 9
 mknod /dev/block/bml10 b 137 10
 mknod /dev/block/bml11 b 137 11
 mknod /dev/block/bml12 b 137 12
+mknod /dev/onedram b 252 0
 
 #ramzswap
 mknod /dev/ramzswap0 b 253 0
@@ -187,6 +188,9 @@ mount -t sysfs sys /sys
 
 insmod /lib/modules/fsr.ko
 insmod /lib/modules/fsr_stl.ko
+#needs parameters
+#insmod /lib/modules/onedram.ko
+#insmod /lib/modules/storage.ko
 
 mkdir -p /fugumod_sd
 mount -t vfat -o utf8 /dev/block/mmcblk0p1 /fugumod_sd
@@ -272,15 +276,16 @@ then
 	mkdir -p /data
 	get_filesystems
 	set_mount_options
+	umount /sdcard /cache /system /dbdata /data
+fi
+# Apply zip now
+ls /fugumod_sd/fugumod/*.zip | while read UPDATE
+do
 	mount -t ${MMC_FS} -o rw${MMC_MNT} /dev/block/mmcblk0p2 /data >>/fugumod.log 2>>/fugumod.log
 	mount -t ${STL10_FS} -o rw${STL10_MNT} /dev/block/stl10 /dbdata	>>/fugumod.log 2>>/fugumod.log
 	mount -t ${STL9_FS} -o rw${STL9_MNT} /dev/block/stl9 /system >>/fugumod.log 2>>/fugumod.log
 	mount -t ${STL11_FS} -o rw${STL11_MNT} /dev/block/stl11 /cache >>/fugumod.log 2>>/fugumod.log
 	mount >>/fugumod.log
-fi
-# Apply zip now
-ls /fugumod_sd/fugumod/*.zip | while read UPDATE
-do
 	mkdir -p /tmp
 	echo "Applying update ${UPDATE}" >>/fugumod.log
 	mkdir -p /fugumod_sd/fugumod/zip_unpack
@@ -289,9 +294,9 @@ do
 #	cat /fugumod_sd/fugumod/zip_unpack/META-INF/com/google/android/updater-script | /sbin/edify2sh >>/fugumod.log 2>>/fugumod.log
 	rm -rf /fugumod_sd/fugumod/zip_unpack /tmp
 	sync
+	umount /sdcard /cache /system /dbdata /data
 done
 rm /fugumod_sd/fugumod/*.zip
-umount /sdcard /cache /system /dbdata /data
 
 #check if we need to convert something (from sanitized output)
 if test -f /fugumod_sd/fugumod/fs.convert
@@ -326,7 +331,7 @@ then
 			MKFS='/sbin/mkfs.nilfs2 -b4096 -B128 -m2 '
 			;;
 			rfs)
-			MKFS='/sbin/mkfs.rfs '
+			MKFS='/sbin/mkfs.rfs -F 16 -S 4096 -s 8 '
 			;;
 			esac
 			if [ "${CUR_FS}" == "rfs" ]
@@ -504,6 +509,14 @@ sed -i "s|fugu_mount_stl9|mount ${STL9_FS} /dev/block/stl9 /system nodev nodirat
 sed -i "s|fugu_mount_stl10|mount ${STL10_FS} /dev/block/stl10 /dbdata sync noexec nodiratime nosuid nodev rw${STL10_MNT}|" /init.rc /recovery.rc
 sed -i "s|fugu_mount_stl11|mount ${STL11_FS} /dev/block/stl11 /cache sync noexec nodiratime nosuid nodev rw${STL11_MNT}|" /init.rc /recovery.rc
 sed -i "s|fugu_mount_mmcblk0p2|mount ${MMC_FS} /dev/block/mmcblk0p2 /data nodiratime nosuid nodev rw${MMC_MNT}|" /init.rc /recovery.rc
+
+# some speed optimizations
+for i in stl9 stl10 stl11
+do
+        echo 512 > /sys/devices/virtual/block/$i/queue/read_ahead_kb
+done
+echo 512 > /sys/devices/platform/s3c-sdhci.0/mmc_host/mmc0/mmc0:0001/block/mmcblk0/queue/read_ahead_kb
+echo 512 > /sys/devices/platform/s3c-sdhci.2/mmc_host/mmc2/mmc2:e624/block/mmcblk1/queue/read_ahead_kb
 
 # unmount all filesystems
 
