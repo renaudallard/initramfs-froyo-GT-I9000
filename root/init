@@ -216,7 +216,7 @@ then
 fi
 
 # check for compcache
-if ! test -f /fugumod_sd/fugumod/nocompcache
+if test -f /fugumod_sd/fugumod/compcache
 then
 	/sbin/rzscontrol /dev/ramzswap0 --init
 	/sbin/swapon /dev/ramzswap0
