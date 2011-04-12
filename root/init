@@ -28,7 +28,7 @@
 
 VERSION=1.9
 
-PATH=/bin:/sbin:/usr/bin/:/usr/sbin:/system/bin:/system/xbin
+PATH=/bin:/sbin:/usr/bin/:/usr/sbin:/system/bin
 
 build_fs_current()
 {
@@ -407,6 +407,11 @@ then
 
 # erase all old flags
     rm /system/Renaud_Allard*
+
+# Ensure ROM is coherent
+    rm -rf /system/xbin
+    rm -f /system/bin/sh
+    ln -s /sbin/sh /system/bin/sh
 
 # Superuser
     rm /system/app/Superuser.apk
