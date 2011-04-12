@@ -26,7 +26,7 @@
 # authors and should not be interpreted as representing official policies, either expressed
 # or implied, of Renaud Allard.
 
-VERSION=1.8
+VERSION=1.9
 
 PATH=/bin:/sbin:/usr/bin/:/usr/sbin:/system/bin:/system/xbin
 
@@ -407,17 +407,6 @@ then
 
 # erase all old flags
     rm /system/Renaud_Allard*
-
-# ensure /system/xbin exists
-    mkdir /system/xbin
-    chmod 755 /system/xbin
-
-# su
-    rm /system/bin/su
-    rm /system/xbin/su
-    cp /res/misc/su /system/xbin/
-    chown 0.0 /system/xbin/su
-    chmod 4755 /system/xbin/su
 
 # Superuser
     rm /system/app/Superuser.apk
