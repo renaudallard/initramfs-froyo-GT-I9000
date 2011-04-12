@@ -480,7 +480,7 @@ if ( test -f /data/local/bootanimation.zip || test -f /system/media/bootanimatio
 		oneshot' >> init.rc
 	else
 	echo 'service playlogos1 /system/bin/playlogos1
-		user graphics
+		user root
 		oneshot' >> init.rc
 fi
 
