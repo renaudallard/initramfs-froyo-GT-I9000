@@ -268,36 +268,6 @@ do
 	esac
 done
 
-# Apply zip updates
-# mount filesystems as some update scripts don't mount them
-if ls /fugumod_sd/fugumod/*.zip >>/fugumod.log 2>>/fugumod.log
-then
-	mkdir -p /dbdata
-	mkdir -p /data
-	get_filesystems
-	set_mount_options
-	umount /sdcard /cache /system /dbdata /data
-fi
-# Apply zip now
-ls /fugumod_sd/fugumod/*.zip | while read UPDATE
-do
-	mount -t ${MMC_FS} -o rw${MMC_MNT} /dev/block/mmcblk0p2 /data >>/fugumod.log 2>>/fugumod.log
-	mount -t ${STL10_FS} -o rw${STL10_MNT} /dev/block/stl10 /dbdata	>>/fugumod.log 2>>/fugumod.log
-	mount -t ${STL9_FS} -o rw${STL9_MNT} /dev/block/stl9 /system >>/fugumod.log 2>>/fugumod.log
-	mount -t ${STL11_FS} -o rw${STL11_MNT} /dev/block/stl11 /cache >>/fugumod.log 2>>/fugumod.log
-	mount >>/fugumod.log
-	mkdir -p /tmp
-	echo "Applying update ${UPDATE}" >>/fugumod.log
-	mkdir -p /fugumod_sd/fugumod/zip_unpack
-	unzip "${UPDATE}" -d /fugumod_sd/fugumod/zip_unpack >>/fugumod.log 2>>/fugumod.log
-	/fugumod_sd/fugumod/zip_unpack/META-INF/com/google/android/update-binary 2 1 "${UPDATE}" >>/fugumod.log 2>>/fugumod.log
-#	cat /fugumod_sd/fugumod/zip_unpack/META-INF/com/google/android/updater-script | /sbin/edify2sh >>/fugumod.log 2>>/fugumod.log
-	rm -rf /fugumod_sd/fugumod/zip_unpack /tmp
-	sync
-	umount /sdcard /cache /system /dbdata /data
-done
-rm /fugumod_sd/fugumod/*.zip
-
 #check if we need to convert something (from sanitized output)
 if test -f /fugumod_sd/fugumod/fs.convert
 then
